@@ -2,6 +2,125 @@
 
 {% block content %}
 <div x-data="dashboardData()" x-init="init()">
+    <!-- Edge Explanation Modal -->
+    <div x-show="showEdgeModal"
+         x-cloak
+         class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+         @click.self="showEdgeModal = false">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-lg bg-white">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 class="text-2xl font-bold text-gray-900">📊 Edge Calculation Explained</h3>
+                <button @click="showEdgeModal = false" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="mt-4 space-y-4">
+                <!-- What is Edge? -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <h4 class="font-bold text-lg mb-2">What is Edge?</h4>
+                    <p class="text-gray-700">
+                        <strong>Edge</strong> represents your advantage over the sportsbook. It's the difference between the <em>true probability</em>
+                        of an event happening (based on our analysis) and the <em>implied probability</em> from the betting odds.
+                    </p>
+                </div>
+
+                <!-- The Formula -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-lg mb-3">The Formula</h4>
+                    <div class="space-y-3">
+                        <!-- Step 1 -->
+                        <div class="bg-white p-3 rounded border-l-4 border-purple-500">
+                            <p class="font-semibold text-purple-700 mb-2">Step 1: Calculate Implied Probability</p>
+                            <div class="font-mono text-sm bg-gray-100 p-2 rounded mb-2">
+                                If odds < 0: implied_prob = |odds| / (|odds| + 100)<br>
+                                If odds > 0: implied_prob = 100 / (odds + 100)
+                            </div>
+                            <p class="text-sm text-gray-600">
+                                <strong>Example:</strong> For odds of -110, implied probability = 110 / (110 + 100) = 52.4%
+                            </p>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="bg-white p-3 rounded border-l-4 border-green-500">
+                            <p class="font-semibold text-green-700 mb-2">Step 2: Calculate Edge Percentage</p>
+                            <div class="font-mono text-sm bg-gray-100 p-2 rounded mb-2">
+                                edge = true_probability - implied_probability<br>
+                                edge_percentage = (edge / implied_probability) × 100
+                            </div>
+                            <p class="text-sm text-gray-600">
+                                <strong>Example:</strong> If true prob = 60% and implied = 52.4%, edge = 7.6%, edge% = (7.6 / 52.4) × 100 = 14.5%
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- True Probability -->
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                    <h4 class="font-bold text-lg mb-2">How We Calculate True Probability</h4>
+                    <p class="text-gray-700 mb-2">
+                        Our models analyze multiple factors to estimate the <em>true probability</em> of a QB throwing a touchdown:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-700 ml-4">
+                        <li><strong>QB Performance:</strong> Historical TD rate per game (60% weight)</li>
+                        <li><strong>Defense Weakness:</strong> Opponent's TDs allowed per game (40% weight)</li>
+                        <li><strong>Home Field Advantage:</strong> +10% boost for home games</li>
+                        <li><strong>League Context:</strong> How QB/defense compare to league averages</li>
+                    </ul>
+                </div>
+
+                <!-- Edge Tiers -->
+                <div class="bg-yellow-50 p-4 rounded">
+                    <h4 class="font-bold text-lg mb-2">Edge Tiers & Betting Strategy</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">PASS</span>
+                            <span class="text-sm">&lt; 5% edge - Not worth betting</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">SMALL EDGE</span>
+                            <span class="text-sm">5-10% edge - Conservative bet (15% Kelly)</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">GOOD EDGE</span>
+                            <span class="text-sm">10-20% edge - Moderate bet (25% Kelly)</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 rounded text-xs font-medium bg-green-100 text-green-800">STRONG EDGE</span>
+                            <span class="text-sm">&gt; 20% edge - Aggressive bet (25% Kelly)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real Example -->
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded">
+                    <h4 class="font-bold text-lg mb-2">Real Example</h4>
+                    <div class="text-sm space-y-2 text-gray-700">
+                        <p><strong>Scenario:</strong> Patrick Mahomes to throw TD vs weak defense</p>
+                        <p><strong>Our Analysis:</strong> True probability = 65% (0.65)</p>
+                        <p><strong>Sportsbook Odds:</strong> -150 (implied prob = 60%)</p>
+                        <p><strong>Edge Calculation:</strong></p>
+                        <div class="ml-4 space-y-1 font-mono text-xs bg-white p-2 rounded">
+                            <p>edge = 0.65 - 0.60 = 0.05</p>
+                            <p>edge_percentage = (0.05 / 0.60) × 100 = 8.3%</p>
+                            <p class="text-blue-600 font-bold">Result: SMALL EDGE - Consider betting</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="mt-6 flex justify-end">
+                <button @click="showEdgeModal = false"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
+                    Got it!
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Header Stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-white rounded-lg shadow p-6">
@@ -42,7 +161,16 @@
                             <th class="text-left py-2">Sportsbook</th>
                             <th class="text-left py-2">True Prob</th>
                             <th class="text-left py-2">Implied</th>
-                            <th class="text-left py-2">Edge</th>
+                            <th class="text-left py-2">
+                                <div class="flex items-center gap-2">
+                                    <span>Edge</span>
+                                    <button @click="showEdgeModal = true"
+                                            class="text-blue-600 hover:text-blue-800 text-xs font-normal underline"
+                                            title="Learn how edge is calculated">
+                                        Learn More
+                                    </button>
+                                </div>
+                            </th>
                             <th class="text-left py-2">Tier</th>
                             <th class="text-left py-2">Bet Size</th>
                         </tr>
@@ -100,6 +228,7 @@
 <script>
 function dashboardData() {
     return {
+        showEdgeModal: false,
         stats: {
             edge_count: 0,
             weak_defense_count: 0,
