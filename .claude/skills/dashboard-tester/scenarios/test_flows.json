@@ -1,0 +1,741 @@
+# Browser Test Scenarios - Bet-That Dashboard
+
+**Date:** October 21, 2025  
+**Status:** Phase 2 Complete - Ready for Implementation  
+**Version:** 1.0  
+
+## Overview
+
+This document defines comprehensive browser test scenarios for the Bet-That Flask dashboard using Chrome DevTools MCP. Tests cover all pages, API endpoints, user interactions, and edge cases.
+
+## Test Categories
+
+### 1. Smoke Tests
+Basic functionality verification to ensure core features work.
+
+### 2. Functional Tests
+Detailed testing of specific features and user workflows.
+
+### 3. Performance Tests
+Load time, responsiveness, and Core Web Vitals testing.
+
+### 4. Error Handling Tests
+Graceful failure states and error recovery testing.
+
+### 5. Responsive Design Tests
+Mobile, tablet, and desktop layout testing.
+
+## Test Scenarios
+
+### Smoke Tests
+
+#### Test 1: All Pages Load
+**Objective:** Verify all dashboard pages load correctly
+**Duration:** <30 seconds
+**Priority:** Critical
+
+```json
+{
+  "test_name": "all_pages_load",
+  "steps": [
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001",
+      "expected": "Main dashboard loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Current Week",
+      "timeout": 10
+    },
+    {
+      "action": "take_snapshot",
+      "purpose": "Verify page structure"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/edges",
+      "expected": "Edges page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Edge Opportunities",
+      "timeout": 10
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/stats",
+      "expected": "Stats page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Database Statistics",
+      "timeout": 10
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/tracker",
+      "expected": "Tracker page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Bet Tracker",
+      "timeout": 10
+    }
+  ],
+  "assertions": [
+    "All pages load without errors",
+    "Navigation works correctly",
+    "Expected content is displayed"
+  ]
+}
+```
+
+#### Test 2: All APIs Respond
+**Objective:** Verify all API endpoints return valid responses
+**Duration:** <20 seconds
+**Priority:** Critical
+
+```json
+{
+  "test_name": "all_apis_respond",
+  "steps": [
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/api/current-week",
+      "expected": "JSON response with week number"
+    },
+    {
+      "action": "take_snapshot",
+      "purpose": "Verify JSON response"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/api/edges?week=7",
+      "expected": "JSON response with edge data"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/api/weak-defenses?week=7",
+      "expected": "JSON response with defense data"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/api/stats/summary",
+      "expected": "JSON response with statistics"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/api/data-status",
+      "expected": "JSON response with data status"
+    }
+  ],
+  "assertions": [
+    "All API endpoints return 200 status",
+    "JSON responses are valid",
+    "Required fields are present"
+  ]
+}
+```
+
+### Functional Tests
+
+#### Test 3: Edges Page Filtering
+**Objective:** Test filter functionality on edges page
+**Duration:** <45 seconds
+**Priority:** High
+
+```json
+{
+  "test_name": "edges_filtering",
+  "steps": [
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/edges",
+      "expected": "Edges page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Filter Options",
+      "timeout": 10
+    },
+    {
+      "action": "take_snapshot",
+      "purpose": "Get element UIDs for form"
+    },
+    {
+      "action": "fill_form",
+      "fields": [
+        {
+          "uid": "week-select",
+          "value": "7"
+        },
+        {
+          "uid": "model-select",
+          "value": "v2"
+        },
+        {
+          "uid": "min-edge-input",
+          "value": "10"
+        }
+      ]
+    },
+    {
+      "action": "click",
+      "uid": "apply-filters-btn",
+      "expected": "Filters applied"
+    },
+    {
+      "action": "wait_for",
+      "text": "Filtered results",
+      "timeout": 15
+    },
+    {
+      "action": "list_network_requests",
+      "purpose": "Verify API call made"
+    },
+    {
+      "action": "take_screenshot",
+      "filename": "edges_filtered.png"
+    }
+  ],
+  "assertions": [
+    "Form fields accept input",
+    "Apply button triggers API call",
+    "Results update with filtered data",
+    "Network request contains correct parameters"
+  ]
+}
+```
+
+#### Test 4: CSV Export
+**Objective:** Test CSV export functionality
+**Duration:** <30 seconds
+**Priority:** High
+
+```json
+{
+  "test_name": "csv_export",
+  "steps": [
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/edges",
+      "expected": "Edges page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Export CSV",
+      "timeout": 10
+    },
+    {
+      "action": "click",
+      "uid": "export-csv-btn",
+      "expected": "CSV download initiated"
+    },
+    {
+      "action": "list_network_requests",
+      "purpose": "Verify download request"
+    },
+    {
+      "action": "list_console_messages",
+      "purpose": "Check for errors"
+    }
+  ],
+  "assertions": [
+    "Export button is clickable",
+    "Download request is made",
+    "No console errors occur",
+    "File download is initiated"
+  ]
+}
+```
+
+#### Test 5: Bet Tracking
+**Objective:** Test bet tracking functionality
+**Duration:** <60 seconds
+**Priority:** Medium
+
+```json
+{
+  "test_name": "bet_tracking",
+  "steps": [
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/tracker",
+      "expected": "Tracker page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Add Bet",
+      "timeout": 10
+    },
+    {
+      "action": "take_snapshot",
+      "purpose": "Get form element UIDs"
+    },
+    {
+      "action": "fill_form",
+      "fields": [
+        {
+          "uid": "bet-description",
+          "value": "Mahomes Over 0.5 TD"
+        },
+        {
+          "uid": "bet-amount",
+          "value": "50"
+        },
+        {
+          "uid": "bet-odds",
+          "value": "-200"
+        }
+      ]
+    },
+    {
+      "action": "click",
+      "uid": "add-bet-btn",
+      "expected": "Bet added to list"
+    },
+    {
+      "action": "wait_for",
+      "text": "Bet added successfully",
+      "timeout": 10
+    },
+    {
+      "action": "take_snapshot",
+      "purpose": "Verify bet appears in list"
+    },
+    {
+      "action": "evaluate_script",
+      "script": "localStorage.getItem('bets')",
+      "purpose": "Verify local storage"
+    }
+  ],
+  "assertions": [
+    "Form accepts input",
+    "Bet is added to list",
+    "Local storage is updated",
+    "Success message is displayed"
+  ]
+}
+```
+
+### Performance Tests
+
+#### Test 6: Page Load Times
+**Objective:** Measure page load performance
+**Duration:** <60 seconds
+**Priority:** Medium
+
+```json
+{
+  "test_name": "page_load_times",
+  "steps": [
+    {
+      "action": "performance_start_trace",
+      "purpose": "Start performance monitoring"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001",
+      "expected": "Main dashboard loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Current Week",
+      "timeout": 10
+    },
+    {
+      "action": "performance_stop_trace",
+      "purpose": "Stop performance monitoring"
+    },
+    {
+      "action": "performance_analyze_insight",
+      "purpose": "Analyze performance metrics"
+    },
+    {
+      "action": "performance_start_trace",
+      "purpose": "Start performance monitoring"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/edges",
+      "expected": "Edges page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Edge Opportunities",
+      "timeout": 10
+    },
+    {
+      "action": "performance_stop_trace",
+      "purpose": "Stop performance monitoring"
+    },
+    {
+      "action": "performance_analyze_insight",
+      "purpose": "Analyze performance metrics"
+    }
+  ],
+  "assertions": [
+    "Main page loads in <2 seconds",
+    "Edges page loads in <3 seconds",
+    "Core Web Vitals are within limits",
+    "No performance regressions"
+  ]
+}
+```
+
+#### Test 7: Core Web Vitals
+**Objective:** Measure Core Web Vitals metrics
+**Duration:** <45 seconds
+**Priority:** Medium
+
+```json
+{
+  "test_name": "core_web_vitals",
+  "steps": [
+    {
+      "action": "performance_start_trace",
+      "purpose": "Start performance monitoring"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/edges",
+      "expected": "Edges page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Edge Opportunities",
+      "timeout": 10
+    },
+    {
+      "action": "performance_stop_trace",
+      "purpose": "Stop performance monitoring"
+    },
+    {
+      "action": "performance_analyze_insight",
+      "purpose": "Analyze Core Web Vitals"
+    }
+  ],
+  "assertions": [
+    "LCP (Largest Contentful Paint) <2.5s",
+    "FID (First Input Delay) <100ms",
+    "CLS (Cumulative Layout Shift) <0.1",
+    "Performance score >90"
+  ]
+}
+```
+
+### Error Handling Tests
+
+#### Test 8: API Failure Simulation
+**Objective:** Test error handling when APIs fail
+**Duration:** <30 seconds
+**Priority:** Medium
+
+```json
+{
+  "test_name": "api_failure",
+  "steps": [
+    {
+      "action": "emulate_network",
+      "condition": "offline",
+      "purpose": "Simulate network failure"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/edges",
+      "expected": "Edges page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Error",
+      "timeout": 15
+    },
+    {
+      "action": "take_screenshot",
+      "filename": "api_failure_error.png"
+    },
+    {
+      "action": "emulate_network",
+      "condition": "online",
+      "purpose": "Restore network"
+    }
+  ],
+  "assertions": [
+    "Error message is displayed",
+    "User-friendly error state",
+    "No JavaScript errors",
+    "Network restoration works"
+  ]
+}
+```
+
+#### Test 9: Network Timeout
+**Objective:** Test handling of slow network conditions
+**Duration:** <45 seconds
+**Priority:** Low
+
+```json
+{
+  "test_name": "network_timeout",
+  "steps": [
+    {
+      "action": "emulate_network",
+      "condition": "slow-3g",
+      "purpose": "Simulate slow network"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001",
+      "expected": "Main dashboard loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Loading",
+      "timeout": 5
+    },
+    {
+      "action": "wait_for",
+      "text": "Current Week",
+      "timeout": 30
+    },
+    {
+      "action": "take_screenshot",
+      "filename": "slow_network_loading.png"
+    },
+    {
+      "action": "emulate_network",
+      "condition": "online",
+      "purpose": "Restore normal network"
+    }
+  ],
+  "assertions": [
+    "Loading state is displayed",
+    "Page eventually loads",
+    "No timeout errors",
+    "User experience is acceptable"
+  ]
+}
+```
+
+### Responsive Design Tests
+
+#### Test 10: Mobile Layout
+**Objective:** Test mobile responsive design
+**Duration:** <30 seconds
+**Priority:** Medium
+
+```json
+{
+  "test_name": "mobile_layout",
+  "steps": [
+    {
+      "action": "resize_page",
+      "width": 375,
+      "height": 667,
+      "purpose": "Set mobile viewport"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001",
+      "expected": "Main dashboard loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Current Week",
+      "timeout": 10
+    },
+    {
+      "action": "take_screenshot",
+      "filename": "mobile_dashboard.png"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/edges",
+      "expected": "Edges page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Edge Opportunities",
+      "timeout": 10
+    },
+    {
+      "action": "take_screenshot",
+      "filename": "mobile_edges.png"
+    }
+  ],
+  "assertions": [
+    "Mobile layout is responsive",
+    "Content is readable",
+    "Navigation works",
+    "Forms are usable"
+  ]
+}
+```
+
+#### Test 11: Tablet Layout
+**Objective:** Test tablet responsive design
+**Duration:** <30 seconds
+**Priority:** Low
+
+```json
+{
+  "test_name": "tablet_layout",
+  "steps": [
+    {
+      "action": "resize_page",
+      "width": 768,
+      "height": 1024,
+      "purpose": "Set tablet viewport"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001",
+      "expected": "Main dashboard loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Current Week",
+      "timeout": 10
+    },
+    {
+      "action": "take_screenshot",
+      "filename": "tablet_dashboard.png"
+    },
+    {
+      "action": "navigate_page",
+      "url": "http://localhost:5001/edges",
+      "expected": "Edges page loads"
+    },
+    {
+      "action": "wait_for",
+      "text": "Edge Opportunities",
+      "timeout": 10
+    },
+    {
+      "action": "take_screenshot",
+      "filename": "tablet_edges.png"
+    }
+  ],
+  "assertions": [
+    "Tablet layout is responsive",
+    "Content is well-organized",
+    "Navigation is accessible",
+    "Forms are properly sized"
+  ]
+}
+```
+
+## Test Execution Strategy
+
+### Test Suite Organization
+
+#### Critical Path Tests
+1. All pages load correctly
+2. All APIs respond with valid data
+3. Basic filtering functionality works
+4. CSV export functions properly
+5. Bet tracking operates correctly
+
+#### Regression Tests
+- Run on every code change
+- Focus on core functionality
+- Quick execution (<5 minutes)
+- High reliability (>95% pass rate)
+
+#### Full Test Suite
+- Run nightly or weekly
+- Comprehensive coverage
+- Longer execution time (<15 minutes)
+- Includes performance and edge cases
+
+### Test Data Requirements
+
+#### Mock Data
+- Sample edge detection results
+- Test database with known data
+- Mock API responses
+- Test CSV files for export
+
+#### Test Environment
+- Flask app running on localhost:5001
+- Test database with sample data
+- Chrome browser with DevTools enabled
+- Network conditions simulation
+
+### Error Handling
+
+#### Test Failures
+- Screenshots on failure
+- Console logs captured
+- Network requests logged
+- Element snapshots for debugging
+
+#### Retry Logic
+- 3 retries for flaky tests
+- Exponential backoff
+- Timeout handling
+- Graceful degradation
+
+### Performance Monitoring
+
+#### Metrics Tracked
+- Test execution time
+- Pass/fail rates
+- Flakiness percentage
+- Coverage metrics
+
+#### Reporting
+- Daily test reports
+- Weekly trend analysis
+- Monthly coverage reports
+- Quarterly performance reviews
+
+## Success Criteria
+
+### Test Coverage
+- **Target:** >80% of dashboard features
+- **Measurement:** Feature coverage analysis
+- **Reporting:** Coverage reports in CI/CD
+
+### Test Reliability
+- **Target:** >95% test pass rate consistently
+- **Measurement:** Pass rate over time
+- **Action:** Fix flaky tests immediately
+
+### Test Speed
+- **Target:** Full suite <2 minutes
+- **Measurement:** Test execution time
+- **Optimization:** Parallel execution, selective testing
+
+### Debugging Efficiency
+- **Target:** <5 minutes to identify test failure cause
+- **Measurement:** Time from failure to root cause identification
+- **Tools:** Screenshots, logs, snapshots
+
+## Future Enhancements
+
+### Additional Test Types
+- **Visual Regression Testing:** Screenshot comparison
+- **Accessibility Testing:** WCAG compliance
+- **Cross-browser Testing:** Firefox, Safari support
+- **Load Testing:** Multiple concurrent users
+
+### Test Automation
+- **CI/CD Integration:** Automated test execution
+- **Test Data Management:** Automated test data setup
+- **Environment Management:** Automated environment provisioning
+- **Reporting Automation:** Automated test reporting
+
+### Advanced Features
+- **Test Parallelization:** Run tests concurrently
+- **Smart Test Selection:** Run only affected tests
+- **Test Caching:** Cache test results
+- **Performance Regression Detection:** Automated performance monitoring
+
+---
+
+**Document Status:** Complete  
+**Next Review:** After Priority 1 implementation  
+**Approved by:** Technical Architecture Team  
+**Date:** October 21, 2025

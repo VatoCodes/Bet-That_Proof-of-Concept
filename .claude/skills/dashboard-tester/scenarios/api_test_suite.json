@@ -1,0 +1,275 @@
+{
+  "api_test_suite": {
+    "endpoints": [
+      {
+        "name": "current_week",
+        "url": "/api/current-week",
+        "method": "GET",
+        "expected_status": 200,
+        "expected_response": {
+          "type": "json",
+          "required_fields": ["week"],
+          "schema": {
+            "week": "integer",
+            "season": "integer",
+            "timestamp": "string"
+          }
+        },
+        "test_cases": [
+          {
+            "name": "valid_response",
+            "description": "Returns current week number",
+            "assertions": [
+              "response.status == 200",
+              "response.json.week is integer",
+              "response.json.week >= 1",
+              "response.json.week <= 18"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "edges",
+        "url": "/api/edges",
+        "method": "GET",
+        "parameters": {
+          "week": "integer",
+          "min_edge": "float",
+          "model": "string"
+        },
+        "expected_status": 200,
+        "expected_response": {
+          "type": "json",
+          "required_fields": ["edges"],
+          "schema": {
+            "edges": "array",
+            "count": "integer",
+            "week": "integer"
+          }
+        },
+        "test_cases": [
+          {
+            "name": "valid_week",
+            "parameters": {
+              "week": 7,
+              "min_edge": 10,
+              "model": "v2"
+            },
+            "description": "Returns edges for valid week",
+            "assertions": [
+              "response.status == 200",
+              "response.json.edges is array",
+              "response.json.count is integer",
+              "response.json.week == 7"
+            ]
+          },
+          {
+            "name": "invalid_week",
+            "parameters": {
+              "week": 99,
+              "min_edge": 10,
+              "model": "v2"
+            },
+            "description": "Handles invalid week gracefully",
+            "expected_status": 400,
+            "assertions": [
+              "response.status == 400",
+              "response.json.error is string"
+            ]
+          },
+          {
+            "name": "missing_parameters",
+            "parameters": {},
+            "description": "Uses default parameters",
+            "assertions": [
+              "response.status == 200",
+              "response.json.edges is array"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "weak_defenses",
+        "url": "/api/weak-defenses",
+        "method": "GET",
+        "parameters": {
+          "week": "integer",
+          "threshold": "float"
+        },
+        "expected_status": 200,
+        "expected_response": {
+          "type": "json",
+          "required_fields": ["defenses"],
+          "schema": {
+            "defenses": "array",
+            "count": "integer",
+            "week": "integer"
+          }
+        },
+        "test_cases": [
+          {
+            "name": "valid_week",
+            "parameters": {
+              "week": 7,
+              "threshold": 2.0
+            },
+            "description": "Returns weak defenses for valid week",
+            "assertions": [
+              "response.status == 200",
+              "response.json.defenses is array",
+              "response.json.count is integer",
+              "response.json.week == 7"
+            ]
+          },
+          {
+            "name": "invalid_threshold",
+            "parameters": {
+              "week": 7,
+              "threshold": -1.0
+            },
+            "description": "Handles invalid threshold",
+            "expected_status": 400,
+            "assertions": [
+              "response.status == 400",
+              "response.json.error is string"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "stats_summary",
+        "url": "/api/stats/summary",
+        "method": "GET",
+        "expected_status": 200,
+        "expected_response": {
+          "type": "json",
+          "required_fields": ["summary"],
+          "schema": {
+            "summary": "object",
+            "total_records": "integer",
+            "last_updated": "string"
+          }
+        },
+        "test_cases": [
+          {
+            "name": "valid_response",
+            "description": "Returns database statistics",
+            "assertions": [
+              "response.status == 200",
+              "response.json.summary is object",
+              "response.json.total_records is integer",
+              "response.json.last_updated is string"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "data_status",
+        "url": "/api/data-status",
+        "method": "GET",
+        "expected_status": 200,
+        "expected_response": {
+          "type": "json",
+          "required_fields": ["status"],
+          "schema": {
+            "status": "object",
+            "validation_passed": "boolean",
+            "issues": "array"
+          }
+        },
+        "test_cases": [
+          {
+            "name": "valid_response",
+            "description": "Returns data validation status",
+            "assertions": [
+              "response.status == 200",
+              "response.json.status is object",
+              "response.json.validation_passed is boolean",
+              "response.json.issues is array"
+            ]
+          }
+        ]
+      }
+    ],
+    "test_scenarios": [
+      {
+        "name": "all_endpoints_respond",
+        "description": "Verify all API endpoints respond correctly",
+        "steps": [
+          "Test each endpoint with valid parameters",
+          "Verify response status codes",
+          "Validate response schemas",
+          "Check required fields"
+        ],
+        "expected_result": "All endpoints return 200 status with valid JSON"
+      },
+      {
+        "name": "error_handling",
+        "description": "Test error handling for invalid inputs",
+        "steps": [
+          "Test invalid week numbers",
+          "Test invalid parameters",
+          "Test missing parameters",
+          "Verify error responses"
+        ],
+        "expected_result": "Appropriate error responses with helpful messages"
+      },
+      {
+        "name": "parameter_validation",
+        "description": "Test parameter validation and defaults",
+        "steps": [
+          "Test with missing optional parameters",
+          "Test with invalid parameter types",
+          "Test with out-of-range values",
+          "Verify default values"
+        ],
+        "expected_result": "Parameters validated correctly, defaults applied"
+      }
+    ],
+    "performance_tests": [
+      {
+        "name": "response_times",
+        "description": "Test API response times",
+        "thresholds": {
+          "current_week": 100,
+          "edges": 500,
+          "weak_defenses": 300,
+          "stats_summary": 200,
+          "data_status": 150
+        },
+        "unit": "milliseconds"
+      },
+      {
+        "name": "concurrent_requests",
+        "description": "Test API under concurrent load",
+        "concurrent_users": 10,
+        "duration_seconds": 30,
+        "expected_result": "All requests complete successfully"
+      }
+    ],
+    "security_tests": [
+      {
+        "name": "sql_injection",
+        "description": "Test for SQL injection vulnerabilities",
+        "test_cases": [
+          {
+            "parameter": "week",
+            "malicious_input": "7; DROP TABLE users;",
+            "expected_result": "Request rejected or sanitized"
+          }
+        ]
+      },
+      {
+        "name": "xss_protection",
+        "description": "Test for XSS vulnerabilities",
+        "test_cases": [
+          {
+            "parameter": "model",
+            "malicious_input": "<script>alert('xss')</script>",
+            "expected_result": "Input sanitized or rejected"
+          }
+        ]
+      }
+    ]
+  }
+}

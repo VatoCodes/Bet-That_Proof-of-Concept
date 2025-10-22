@@ -1,0 +1,90 @@
+{
+  "alert_config": {
+    "enabled_channels": ["email", "sms"],
+    "alert_tiers": ["STRONG EDGE", "GOOD EDGE"],
+    "check_interval_minutes": 15,
+    "minimum_edge_percentage": 10.0,
+    "max_alerts_per_hour": 10,
+    "max_alerts_per_day": 50,
+    "duplicate_window_hours": 4,
+    "retry_attempts": 3,
+    "retry_delay_seconds": 60,
+    "log_level": "INFO",
+    "metrics_enabled": true
+  },
+  "email": {
+    "enabled": true,
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "username": "alerts@bet-that.com",
+    "password": "app_password",
+    "to_addresses": ["user@example.com"],
+    "from_address": "alerts@bet-that.com",
+    "subject_template": "🔥 {tier} Detected - Week {week}",
+    "template": "detailed_edge_alert"
+  },
+  "sms": {
+    "enabled": true,
+    "twilio_account_sid": "AC...",
+    "twilio_auth_token": "...",
+    "twilio_phone_number": "+1234567890",
+    "to_numbers": ["+1234567890"],
+    "template": "urgent_edge_alert"
+  },
+  "dashboard": {
+    "enabled": true,
+    "notification_duration": 30,
+    "max_notifications": 5,
+    "template": "dashboard_alert"
+  },
+  "push": {
+    "enabled": false,
+    "vapid_public_key": "...",
+    "vapid_private_key": "...",
+    "template": "push_notification"
+  },
+  "schedule": {
+    "default_interval_minutes": 15,
+    "peak_hours_interval_minutes": 10,
+    "off_hours_interval_minutes": 30,
+    "game_day_interval_minutes": 5,
+    "active_hours": {
+      "start": "09:00",
+      "end": "23:00"
+    },
+    "peak_days": ["thursday", "friday", "saturday", "sunday"],
+    "game_day_hours": {
+      "start": "17:00",
+      "end": "23:00"
+    }
+  },
+  "user_preferences": {
+    "user_id": "user123",
+    "enabled_channels": ["email", "sms"],
+    "alert_tiers": ["STRONG EDGE", "GOOD EDGE"],
+    "minimum_edge_percentage": 10.0,
+    "quiet_hours": {
+      "enabled": true,
+      "start": "22:00",
+      "end": "08:00"
+    },
+    "team_preferences": {
+      "chiefs": {
+        "enabled": true,
+        "channels": ["email", "sms"]
+      },
+      "bengals": {
+        "enabled": false
+      }
+    }
+  },
+  "system_config": {
+    "max_alerts_per_hour": 10,
+    "max_alerts_per_day": 50,
+    "duplicate_window_hours": 4,
+    "retry_attempts": 3,
+    "retry_delay_seconds": 60,
+    "log_level": "INFO",
+    "metrics_enabled": true
+  }
+}

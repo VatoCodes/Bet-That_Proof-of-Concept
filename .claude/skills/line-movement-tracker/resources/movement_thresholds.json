@@ -1,0 +1,79 @@
+{
+  "movement_thresholds": {
+    "spread_movement": {
+      "minimum_points": 1.5,
+      "significant_points": 2.5,
+      "steam_move_points": 3.0,
+      "description": "Minimum point movement to consider significant"
+    },
+    "total_movement": {
+      "minimum_points": 2.0,
+      "significant_points": 3.0,
+      "steam_move_points": 4.0,
+      "description": "Minimum total movement to consider significant"
+    },
+    "odds_movement": {
+      "minimum_percentage": 10,
+      "significant_percentage": 20,
+      "steam_move_percentage": 30,
+      "description": "Minimum odds change percentage to consider significant"
+    },
+    "sharp_money": {
+      "public_betting_threshold": 60,
+      "reverse_movement_threshold": 1.0,
+      "description": "Thresholds for detecting sharp money indicators"
+    },
+    "time_windows": {
+      "morning_scrape_time": "09:00",
+      "afternoon_scrape_time": "15:00",
+      "analysis_window_hours": 6,
+      "description": "Time windows for line movement analysis"
+    }
+  },
+  "movement_classification": {
+    "steam_moves": {
+      "spread_threshold": 2.5,
+      "total_threshold": 3.0,
+      "odds_threshold": 20,
+      "time_threshold_minutes": 30,
+      "description": "Criteria for classifying steam moves"
+    },
+    "sharp_money": {
+      "public_betting_threshold": 60,
+      "movement_direction": "opposite",
+      "minimum_movement": 1.0,
+      "description": "Criteria for detecting sharp money"
+    },
+    "reverse_line_movement": {
+      "public_betting_threshold": 65,
+      "movement_threshold": 1.0,
+      "description": "Criteria for reverse line movement"
+    },
+    "closing_line_value": {
+      "time_threshold_hours": 2,
+      "movement_threshold": 1.0,
+      "description": "Criteria for closing line value opportunities"
+    }
+  },
+  "data_sources": {
+    "morning_data_pattern": "*_9am_auto.csv",
+    "afternoon_data_pattern": "*_3pm_auto.csv",
+    "current_data_pattern": "odds_*_week_X.csv",
+    "backup_data_pattern": "*_auto.csv",
+    "description": "File patterns for different data sources"
+  },
+  "output_format": {
+    "steam_moves_section": "🔥 STEAM MOVES",
+    "reverse_movement_section": "⚠️ REVERSE LINE MOVEMENT",
+    "sharp_money_section": "💰 SHARP MONEY INDICATORS",
+    "closing_line_value_section": "📈 CLOSING LINE VALUE",
+    "description": "Output section headers and formatting"
+  },
+  "recommendations": {
+    "steam_move_recommendation": "Consider betting the sharp side",
+    "reverse_movement_recommendation": "Sharp money indicated",
+    "closing_line_value_recommendation": "Beat the closing number",
+    "sharp_money_recommendation": "Follow the sharp money",
+    "description": "Standard recommendations for different movement types"
+  }
+}

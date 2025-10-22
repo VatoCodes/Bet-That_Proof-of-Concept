@@ -1,0 +1,87 @@
+{
+  "email_templates": {
+    "detailed_edge_alert": {
+      "subject": "🔥 {tier} Detected - Week {week}",
+      "html_body": "<!DOCTYPE html><html><head><title>Bet-That Edge Alert</title></head><body><h2>🔥 {tier} Detected - Week {week}</h2><h3>{qb_name} {prop_type} vs {opponent}</h3><p><strong>Edge:</strong> {edge_percentage}%</p><p><strong>Tier:</strong> {tier}</p><p><strong>True Probability:</strong> {true_probability}%</p><p><strong>Implied Odds:</strong> {implied_odds}% (at {odds})</p><h4>Recommendation</h4><p><strong>Bet Amount:</strong> ${bet_amount} ({bet_percentage}% of ${bankroll} bankroll)</p><p><strong>Kelly Fraction:</strong> {kelly_fraction}% Kelly ({kelly_type})</p><h4>Stats</h4><ul><li>{qb_name}: {qb_td_per_game} TD/game ({qb_games} games)</li><li>{opponent} Defense: {defense_td_allowed} TD/game allowed</li><li>Home field advantage: {home_advantage}%</li></ul><p><strong>Action Required:</strong> {action_message}</p><p><a href=\"{dashboard_link}\">View in Dashboard</a></p></body></html>",
+      "text_body": "🔥 {tier} Detected - Week {week}\n\n{qb_name} {prop_type} vs {opponent}\n\nEdge: {edge_percentage}%\nTier: {tier}\nTrue Probability: {true_probability}%\nImplied Odds: {implied_odds}% (at {odds})\n\nRecommendation:\nBet Amount: ${bet_amount} ({bet_percentage}% of ${bankroll} bankroll)\nKelly Fraction: {kelly_fraction}% Kelly ({kelly_type})\n\nStats:\n- {qb_name}: {qb_td_per_game} TD/game ({qb_games} games)\n- {opponent} Defense: {defense_td_allowed} TD/game allowed\n- Home field advantage: {home_advantage}%\n\nAction Required: {action_message}\nDashboard: {dashboard_link}"
+    },
+    "urgent_edge_alert": {
+      "subject": "🚨 URGENT: {tier} - Week {week}",
+      "html_body": "<!DOCTYPE html><html><head><title>Urgent Bet-That Alert</title></head><body><h2>🚨 URGENT: {tier} - Week {week}</h2><h3>{qb_name} {prop_type} vs {opponent}</h3><p><strong>Edge:</strong> {edge_percentage}%</p><p><strong>Bet Amount:</strong> ${bet_amount}</p><p><strong>Action Required:</strong> {action_message}</p><p><a href=\"{dashboard_link}\">View Now</a></p></body></html>",
+      "text_body": "🚨 URGENT: {tier} - Week {week}\n\n{qb_name} {prop_type} vs {opponent}\n\nEdge: {edge_percentage}%\nBet Amount: ${bet_amount}\n\nAction Required: {action_message}\nDashboard: {dashboard_link}"
+    }
+  },
+  "sms_templates": {
+    "urgent_edge_alert": "🔥 {tier}: {qb_name} {prop_type} vs {opponent}\nEdge: {edge_percentage}% | Bet: ${bet_amount} ({bet_percentage}% bankroll)\n{action_message}\nDashboard: {dashboard_link}",
+    "detailed_edge_alert": "🔥 {tier}: {qb_name} {prop_type} vs {opponent}\nEdge: {edge_percentage}% | True Prob: {true_probability}%\nBet: ${bet_amount} ({bet_percentage}% bankroll)\nKelly: {kelly_fraction}% ({kelly_type})\n{action_message}\nDashboard: {dashboard_link}",
+    "line_movement_alert": "📈 LINE MOVEMENT: {qb_name} {prop_type}\nMoved from {old_odds} to {new_odds}\nEdge: {edge_percentage}%\nRecommendation: {recommendation}\nDashboard: {dashboard_link}"
+  },
+  "dashboard_templates": {
+    "dashboard_alert": {
+      "title": "{tier} Detected",
+      "message": "{qb_name} {prop_type} vs {opponent} - {edge_percentage}% edge",
+      "type": "success",
+      "duration": 30,
+      "actions": [
+        {
+          "text": "View Details",
+          "url": "{dashboard_link}"
+        },
+        {
+          "text": "Dismiss",
+          "action": "dismiss"
+        }
+      ]
+    },
+    "line_movement_alert": {
+      "title": "Line Movement Detected",
+      "message": "{qb_name} {prop_type} moved from {old_odds} to {new_odds}",
+      "type": "info",
+      "duration": 20,
+      "actions": [
+        {
+          "text": "Analyze",
+          "url": "{dashboard_link}"
+        }
+      ]
+    }
+  },
+  "push_templates": {
+    "push_notification": {
+      "title": "🔥 {tier} Detected",
+      "body": "{qb_name} {prop_type} vs {opponent} - {edge_percentage}% edge",
+      "icon": "/icons/alert-icon.png",
+      "badge": "/icons/badge-icon.png",
+      "data": {
+        "url": "{dashboard_link}",
+        "edge_percentage": "{edge_percentage}",
+        "tier": "{tier}"
+      }
+    }
+  },
+  "template_variables": {
+    "tier": "STRONG EDGE, GOOD EDGE, WEAK EDGE",
+    "week": "NFL week number",
+    "qb_name": "Quarterback name",
+    "prop_type": "Prop bet type (e.g., Over 0.5 TD)",
+    "opponent": "Opposing team",
+    "edge_percentage": "Edge percentage (e.g., 18.2)",
+    "true_probability": "True probability percentage",
+    "implied_odds": "Implied odds percentage",
+    "odds": "Sportsbook odds (e.g., -340)",
+    "bet_amount": "Recommended bet amount",
+    "bet_percentage": "Bet percentage of bankroll",
+    "bankroll": "Total bankroll amount",
+    "kelly_fraction": "Kelly fraction percentage",
+    "kelly_type": "Kelly type (conservative, aggressive)",
+    "qb_td_per_game": "QB TDs per game",
+    "qb_games": "Number of games played",
+    "defense_td_allowed": "Defense TDs allowed per game",
+    "home_advantage": "Home field advantage percentage",
+    "action_message": "Action required message",
+    "dashboard_link": "Dashboard URL",
+    "old_odds": "Previous odds",
+    "new_odds": "New odds",
+    "recommendation": "Betting recommendation"
+  }
+}

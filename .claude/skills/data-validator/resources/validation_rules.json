@@ -1,0 +1,245 @@
+{
+  "validation_rules": {
+    "schema_validation": {
+      "qb_stats": {
+        "required_columns": ["player", "team", "week", "tds", "games"],
+        "data_types": {
+          "player": "string",
+          "team": "string",
+          "week": "integer",
+          "tds": "float",
+          "games": "integer"
+        },
+        "value_ranges": {
+          "tds": [0, 10],
+          "games": [1, 20]
+        },
+        "constraints": {
+          "player": "not_null",
+          "team": "not_null",
+          "week": "range_1_18",
+          "tds": "non_negative",
+          "games": "positive"
+        }
+      },
+      "defense_stats": {
+        "required_columns": ["team", "week", "tds_allowed", "games"],
+        "data_types": {
+          "team": "string",
+          "week": "integer",
+          "tds_allowed": "float",
+          "games": "integer"
+        },
+        "value_ranges": {
+          "tds_allowed": [0, 10],
+          "games": [1, 20]
+        },
+        "constraints": {
+          "team": "not_null",
+          "week": "range_1_18",
+          "tds_allowed": "non_negative",
+          "games": "positive"
+        }
+      },
+      "matchups": {
+        "required_columns": ["home_team", "away_team", "week", "date"],
+        "data_types": {
+          "home_team": "string",
+          "away_team": "string",
+          "week": "integer",
+          "date": "date"
+        },
+        "constraints": {
+          "home_team": "not_null",
+          "away_team": "not_null",
+          "week": "range_1_18",
+          "date": "valid_date"
+        }
+      },
+      "odds_spreads": {
+        "required_columns": ["team", "opponent", "week", "spread", "odds"],
+        "data_types": {
+          "team": "string",
+          "opponent": "string",
+          "week": "integer",
+          "spread": "float",
+          "odds": "integer"
+        },
+        "value_ranges": {
+          "spread": [-20, 20],
+          "odds": [-1000, 1000]
+        },
+        "constraints": {
+          "team": "not_null",
+          "opponent": "not_null",
+          "week": "range_1_18",
+          "spread": "valid_spread",
+          "odds": "valid_odds"
+        }
+      },
+      "odds_totals": {
+        "required_columns": ["team", "opponent", "week", "total", "odds"],
+        "data_types": {
+          "team": "string",
+          "opponent": "string",
+          "week": "integer",
+          "total": "float",
+          "odds": "integer"
+        },
+        "value_ranges": {
+          "total": [30, 70],
+          "odds": [-1000, 1000]
+        },
+        "constraints": {
+          "team": "not_null",
+          "opponent": "not_null",
+          "week": "range_1_18",
+          "total": "valid_total",
+          "odds": "valid_odds"
+        }
+      },
+      "odds_qb_td": {
+        "required_columns": ["player", "team", "opponent", "week", "odds"],
+        "data_types": {
+          "player": "string",
+          "team": "string",
+          "opponent": "string",
+          "week": "integer",
+          "odds": "integer"
+        },
+        "value_ranges": {
+          "odds": [-1000, 1000]
+        },
+        "constraints": {
+          "player": "not_null",
+          "team": "not_null",
+          "opponent": "not_null",
+          "week": "range_1_18",
+          "odds": "valid_odds"
+        }
+      }
+    },
+    "anomaly_detection": {
+      "z_score_threshold": 2.5,
+      "iqr_multiplier": 1.5,
+      "min_samples": 10,
+      "outlier_methods": ["z_score", "iqr", "isolation_forest"],
+      "severity_levels": {
+        "low": {
+          "z_score": [2.0, 2.5],
+          "description": "Minor anomaly, likely normal variance"
+        },
+        "medium": {
+          "z_score": [2.5, 3.0],
+          "description": "Moderate anomaly, requires investigation"
+        },
+        "high": {
+          "z_score": [3.0, 4.0],
+          "description": "High anomaly, likely data error"
+        },
+        "critical": {
+          "z_score": [4.0, 999],
+          "description": "Critical anomaly, definitely data error"
+        }
+      }
+    },
+    "quality_scoring": {
+      "completeness_weight": 0.3,
+      "accuracy_weight": 0.3,
+      "consistency_weight": 0.2,
+      "timeliness_weight": 0.2,
+      "max_score": 10,
+      "scoring_ranges": {
+        "excellent": [9.0, 10.0],
+        "good": [7.0, 8.9],
+        "fair": [5.0, 6.9],
+        "poor": [0.0, 4.9]
+      }
+    },
+    "data_consistency": {
+      "cross_reference_checks": [
+        {
+          "name": "team_name_consistency",
+          "description": "Team names consistent across tables",
+          "tables": ["qb_stats", "defense_stats", "matchups", "odds_spreads"],
+          "field": "team"
+        },
+        {
+          "name": "week_consistency",
+          "description": "Week numbers consistent across tables",
+          "tables": ["qb_stats", "defense_stats", "matchups", "odds_spreads"],
+          "field": "week"
+        },
+        {
+          "name": "player_team_consistency",
+          "description": "Player teams match team names",
+          "tables": ["qb_stats", "odds_qb_td"],
+          "fields": ["player", "team"]
+        }
+      ],
+      "referential_integrity": [
+        {
+          "name": "matchup_teams",
+          "description": "Teams in matchups exist in other tables",
+          "source_table": "matchups",
+          "target_tables": ["qb_stats", "defense_stats"]
+        }
+      ]
+    },
+    "timeliness_validation": {
+      "data_freshness_hours": 6,
+      "scrape_intervals": {
+        "morning": "09:00",
+        "afternoon": "15:00"
+      },
+      "expected_delays": {
+        "morning_scrape": 2,
+        "afternoon_scrape": 2
+      },
+      "alert_thresholds": {
+        "data_stale_hours": 12,
+        "missing_scrape_hours": 8
+      }
+    },
+    "statistical_validation": {
+      "distribution_checks": {
+        "qb_tds": {
+          "expected_distribution": "normal",
+          "mean_range": [1.0, 2.0],
+          "std_range": [0.5, 1.5]
+        },
+        "defense_tds_allowed": {
+          "expected_distribution": "normal",
+          "mean_range": [1.0, 2.5],
+          "std_range": [0.5, 1.0]
+        },
+        "spreads": {
+          "expected_distribution": "normal",
+          "mean_range": [-5, 5],
+          "std_range": [3, 7]
+        },
+        "totals": {
+          "expected_distribution": "normal",
+          "mean_range": [40, 50],
+          "std_range": [5, 10]
+        }
+      },
+      "trend_analysis": {
+        "min_data_points": 5,
+        "trend_threshold": 0.1,
+        "seasonal_patterns": true
+      }
+    },
+    "business_rules": {
+      "nfl_season": {
+        "start_week": 1,
+        "end_week": 18,
+        "playoff_weeks": [19, 20, 21, 22]
+      },
+      "team_count": 32,
+      "games_per_week": 16,
+      "max_players_per_team": 53,
+      "min_games_for_stats": 1
+    }
+  }
+}

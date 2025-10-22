@@ -1,0 +1,196 @@
+{
+  "model_configs": {
+    "v1": {
+      "name": "Simple Probability Model",
+      "description": "Basic probability calculation using league averages and home field advantage",
+      "parameters": {
+        "league_average_tds": 1.5,
+        "home_advantage": 0.1,
+        "weather_factor": 0.0,
+        "injury_factor": 0.0,
+        "recent_form_weight": 0.0
+      },
+      "calculation_method": "simple_average",
+      "use_cases": [
+        "Quick analysis",
+        "Baseline comparisons",
+        "Simple edge detection"
+      ],
+      "accuracy": "moderate",
+      "speed": "fast"
+    },
+    "v2": {
+      "name": "Advanced Probability Model",
+      "description": "Enhanced probability calculation with multiple factors and statistical analysis",
+      "parameters": {
+        "league_average_tds": 1.5,
+        "home_advantage": 0.1,
+        "weather_factor": 0.05,
+        "injury_factor": 0.15,
+        "recent_form_weight": 0.3,
+        "defense_strength_weight": 0.25,
+        "qb_trend_weight": 0.2,
+        "matchup_history_weight": 0.1
+      },
+      "calculation_method": "weighted_average",
+      "use_cases": [
+        "Detailed analysis",
+        "High-stakes decisions",
+        "Complex edge detection"
+      ],
+      "accuracy": "high",
+      "speed": "moderate"
+    },
+    "v3": {
+      "name": "Machine Learning Model",
+      "description": "ML-powered probability calculation with historical pattern recognition",
+      "parameters": {
+        "league_average_tds": 1.5,
+        "home_advantage": 0.1,
+        "weather_factor": 0.05,
+        "injury_factor": 0.15,
+        "recent_form_weight": 0.3,
+        "defense_strength_weight": 0.25,
+        "qb_trend_weight": 0.2,
+        "matchup_history_weight": 0.1,
+        "ml_model_path": "models/qb_td_predictor.pkl",
+        "feature_engineering": true,
+        "ensemble_method": "voting"
+      },
+      "calculation_method": "machine_learning",
+      "use_cases": [
+        "Advanced analysis",
+        "Research and development",
+        "Model comparison"
+      ],
+      "accuracy": "very_high",
+      "speed": "slow"
+    }
+  },
+  "defaults": {
+    "week": "current",
+    "model": "v2",
+    "min_edge": 0.1,
+    "bankroll": 1000,
+    "confidence": "medium",
+    "kelly_type": "conservative"
+  },
+  "kelly_criterion": {
+    "conservative": {
+      "max_bet_percentage": 0.05,
+      "kelly_multiplier": 0.25,
+      "description": "Conservative betting approach"
+    },
+    "moderate": {
+      "max_bet_percentage": 0.10,
+      "kelly_multiplier": 0.50,
+      "description": "Moderate betting approach"
+    },
+    "aggressive": {
+      "max_bet_percentage": 0.20,
+      "kelly_multiplier": 1.00,
+      "description": "Aggressive betting approach"
+    }
+  },
+  "edge_tiers": {
+    "STRONG EDGE": {
+      "min_percentage": 15.0,
+      "color": "red",
+      "icon": "🔥",
+      "description": "High-confidence edge opportunity"
+    },
+    "GOOD EDGE": {
+      "min_percentage": 10.0,
+      "color": "orange",
+      "icon": "⚡",
+      "description": "Good edge opportunity"
+    },
+    "WEAK EDGE": {
+      "min_percentage": 5.0,
+      "color": "yellow",
+      "icon": "💡",
+      "description": "Weak edge opportunity"
+    },
+    "NO EDGE": {
+      "min_percentage": 0.0,
+      "color": "gray",
+      "icon": "❌",
+      "description": "No significant edge"
+    }
+  },
+  "confidence_levels": {
+    "high": {
+      "min_games": 10,
+      "min_edge": 15.0,
+      "description": "High confidence in analysis"
+    },
+    "medium": {
+      "min_games": 5,
+      "min_edge": 10.0,
+      "description": "Medium confidence in analysis"
+    },
+    "low": {
+      "min_games": 1,
+      "min_edge": 5.0,
+      "description": "Low confidence in analysis"
+    }
+  },
+  "weather_conditions": {
+    "optimal": {
+      "temperature_range": [60, 80],
+      "wind_speed_max": 10,
+      "precipitation": "none",
+      "factor": 0.0,
+      "description": "Optimal weather conditions"
+    },
+    "good": {
+      "temperature_range": [50, 90],
+      "wind_speed_max": 15,
+      "precipitation": "light",
+      "factor": -0.02,
+      "description": "Good weather conditions"
+    },
+    "poor": {
+      "temperature_range": [30, 100],
+      "wind_speed_max": 25,
+      "precipitation": "heavy",
+      "factor": -0.05,
+      "description": "Poor weather conditions"
+    }
+  },
+  "injury_impact": {
+    "none": {
+      "factor": 0.0,
+      "description": "No injury impact"
+    },
+    "minor": {
+      "factor": -0.05,
+      "description": "Minor injury impact"
+    },
+    "moderate": {
+      "factor": -0.10,
+      "description": "Moderate injury impact"
+    },
+    "major": {
+      "factor": -0.20,
+      "description": "Major injury impact"
+    }
+  },
+  "team_preferences": {
+    "default": {
+      "enabled": true,
+      "priority": 1.0,
+      "description": "Default team preference"
+    },
+    "favorite": {
+      "enabled": true,
+      "priority": 1.2,
+      "description": "Favorite team preference"
+    },
+    "avoid": {
+      "enabled": false,
+      "priority": 0.0,
+      "description": "Team to avoid"
+    }
+  }
+}
