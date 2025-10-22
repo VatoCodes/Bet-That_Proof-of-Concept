@@ -2,23 +2,24 @@
 
 {% block content %}
 <div x-data="edgesData()" x-init="init()">
-    <!-- Glossary Modal -->
-    <div x-show="showGlossaryModal"
+    <!-- Edge Explanation Modal -->
+    <div x-show="showEdgeModal"
          x-cloak
          class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-         @click.self="showGlossaryModal = false">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-lg bg-white">
+         @click.self="showEdgeModal = false">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-lg bg-white">
             <!-- Modal Header -->
             <div class="flex justify-between items-center pb-3 border-b">
-                <h3 class="text-2xl font-bold text-gray-900">📖 Variables Glossary</h3>
-                <button @click="showGlossaryModal = false" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">
+                <h3 class="text-2xl font-bold text-gray-900">📊 Edge Calculation Explained</h3>
+                <button @click="showEdgeModal = false" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">
                     &times;
                 </button>
             </div>
 
             <!-- Modal Content -->
             <div class="mt-4 space-y-4">
-                <p class="text-gray-700 mb-4">Understanding the variables used in our edge calculations and probability models:</p>
+                <!-- Variables Glossary -->
+                <p class="text-gray-700 mb-4 font-semibold">📖 Variables Glossary - Understanding the variables used in our edge calculations:</p>
 
                 <!-- QB Variables -->
                 <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
@@ -107,34 +108,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Modal Footer -->
-            <div class="mt-6 flex justify-end">
-                <button @click="showGlossaryModal = false"
-                        class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edge Explanation Modal -->
-    <div x-show="showEdgeModal"
-         x-cloak
-         class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-         @click.self="showEdgeModal = false">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-lg bg-white">
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center pb-3 border-b">
-                <h3 class="text-2xl font-bold text-gray-900">📊 Edge Calculation Explained</h3>
-                <button @click="showEdgeModal = false" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">
-                    &times;
-                </button>
-            </div>
-
-            <!-- Modal Content -->
-            <div class="mt-4 space-y-4">
                 <!-- What is Edge? -->
                 <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
                     <h4 class="font-bold text-lg mb-2">What is Edge?</h4>
@@ -309,12 +283,7 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="mt-6 flex justify-between items-center">
-                <button @click="showEdgeModal = false; showGlossaryModal = true"
-                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 font-medium flex items-center gap-2">
-                    <span>📖</span>
-                    <span>View Variables Glossary</span>
-                </button>
+            <div class="mt-6 flex justify-end">
                 <button @click="showEdgeModal = false"
                         class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
                     Got it!
@@ -403,17 +372,6 @@
                                 <th class="text-left py-2">
                                     <div class="flex items-center gap-2">
                                         <span>Edge</span>
-                                        <div class="relative group">
-                                            <button @click="showEdgeModal = true"
-                                                    class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 flex items-center justify-center text-sm font-bold cursor-pointer"
-                                                    title="Click to learn how edge is calculated">
-                                                ?
-                                            </button>
-                                            <div class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 bottom-full left-1/2 transform -translate-x-1/2 mb-2 whitespace-nowrap z-10">
-                                                Click to learn how edge is calculated
-                                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
-                                            </div>
-                                        </div>
                                         <button @click="showEdgeModal = true"
                                                 class="text-blue-600 hover:text-blue-800 text-xs font-normal underline"
                                                 title="Learn how edge is calculated">
