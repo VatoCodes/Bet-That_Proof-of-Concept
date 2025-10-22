@@ -356,8 +356,8 @@
                 <p class="text-sm mt-2">Try adjusting filters or check different weeks</p>
             </div>
             
-            <div x-show="!loading && edges.length > 0">
-                <div class="overflow-x-auto">
+            <div x-show="!loading && edges.length > 0" style="position: relative;">
+                <div style="position: relative; overflow-x: auto;">
                     <table class="w-full">
                         <thead>
                             <tr class="border-b">
@@ -415,8 +415,10 @@
                                             <!-- Tooltip -->
                                             <div x-show="showTooltip"
                                                  x-cloak
-                                                 class="absolute z-50 left-0 top-full mt-1 w-96 bg-gray-900 text-white text-xs rounded-lg shadow-lg p-4"
-                                                 @click.away="showTooltip = false">
+                                                 class="absolute z-50 w-96 bg-gray-900 text-white text-xs rounded-lg shadow-lg p-4"
+                                                 style="left: 0; top: 100%; margin-top: 0.25rem; pointer-events: auto;"
+                                                 @click.away="showTooltip = false"
+                                                 @click="showTooltip = false">
                                                 <div class="font-bold mb-2 text-sm border-b border-gray-700 pb-2" x-text="edge.qb_name + ' Calculation'"></div>
                                                 <div class="space-y-2 font-mono">
                                                     <div>

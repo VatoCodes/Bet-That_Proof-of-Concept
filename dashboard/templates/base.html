@@ -17,6 +17,16 @@
     <!-- Custom styles -->
     <style>
         [x-cloak] { display: none !important; }
+
+        /* Fix tooltip overflow clipping in table cells */
+        td.relative {
+            overflow: visible !important;
+        }
+
+        /* Ensure tooltips can overflow from scrollable containers */
+        div[style*="overflow-x"] {
+            overflow-y: visible !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
