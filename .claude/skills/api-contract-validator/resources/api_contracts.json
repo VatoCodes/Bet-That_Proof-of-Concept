@@ -1,0 +1,125 @@
+{
+  "/api/edges": {
+    "description": "Get betting edges with strategy filtering",
+    "required_params": ["week"],
+    "optional_params": ["strategy", "min_edge"],
+    "required_fields": ["success", "edges", "count", "week"],
+    "field_types": {
+      "success": "bool",
+      "edges": "list",
+      "count": "int",
+      "week": "int",
+      "strategy_breakdown": "dict"
+    },
+    "nested_arrays": {
+      "edges": {
+        "required_fields": [
+          "matchup",
+          "strategy",
+          "line",
+          "recommendation",
+          "edge_pct",
+          "confidence"
+        ],
+        "field_types": {
+          "matchup": "str",
+          "strategy": "str",
+          "line": "str",
+          "recommendation": "str",
+          "edge_pct": "float",
+          "confidence": "str"
+        }
+      }
+    },
+    "frontend_usage": [
+      "dashboard/templates/index.html:451",
+      "dashboard/templates/edges.html:740"
+    ]
+  },
+  "/api/edges/counts": {
+    "description": "Get edge counts by strategy for tab badges",
+    "required_params": ["week"],
+    "optional_params": [],
+    "required_fields": ["success", "week", "counts"],
+    "field_types": {
+      "success": "bool",
+      "week": "int",
+      "counts": "dict"
+    }
+  },
+  "/api/current-week": {
+    "description": "Get current NFL week number",
+    "required_params": [],
+    "optional_params": [],
+    "required_fields": ["success", "week"],
+    "field_types": {
+      "success": "bool",
+      "week": "int"
+    }
+  },
+  "/api/week-range": {
+    "description": "Get available week range",
+    "required_params": [],
+    "optional_params": [],
+    "required_fields": ["success", "min_week", "max_week", "current_week"],
+    "field_types": {
+      "success": "bool",
+      "min_week": "int",
+      "max_week": "int",
+      "current_week": "int"
+    }
+  },
+  "/api/weak-defenses": {
+    "description": "Get weak defense analysis",
+    "required_params": ["week"],
+    "optional_params": [],
+    "required_fields": ["success", "week", "defenses"],
+    "field_types": {
+      "success": "bool",
+      "week": "int",
+      "defenses": "list"
+    },
+    "nested_arrays": {
+      "defenses": {
+        "required_fields": ["team", "weakness", "opponent"],
+        "field_types": {
+          "team": "str",
+          "weakness": "str",
+          "opponent": "str"
+        }
+      }
+    }
+  },
+  "/api/stats/summary": {
+    "description": "Get database statistics summary",
+    "required_params": [],
+    "optional_params": [],
+    "required_fields": ["success", "total_records", "weeks_available"],
+    "field_types": {
+      "success": "bool",
+      "total_records": "int",
+      "weeks_available": "list"
+    }
+  },
+  "/api/data-status": {
+    "description": "Get data validation status",
+    "required_params": [],
+    "optional_params": [],
+    "required_fields": ["success", "status", "last_updated"],
+    "field_types": {
+      "success": "bool",
+      "status": "str",
+      "last_updated": "str"
+    }
+  },
+  "/api/edge/explain": {
+    "description": "Get explanation for specific edge",
+    "required_params": ["edge_id"],
+    "optional_params": [],
+    "required_fields": ["success", "explanation"],
+    "field_types": {
+      "success": "bool",
+      "explanation": "str"
+    }
+  }
+}

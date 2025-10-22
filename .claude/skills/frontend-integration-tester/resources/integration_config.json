@@ -1,0 +1,13 @@
+{
+  "backend_url": "http://localhost:5001",
+  "chrome_options": {
+    "headless": false,
+    "window_size": "1920x1080",
+    "user_data_dir": "/tmp/chrome_test_profile"
+  },
+  "timeout_seconds": 30,
+  "screenshot_on_failure": true,
+  "screenshot_dir": ".claude/skills/frontend-integration-tester/screenshots",
+  "alert_on_failure": true,
+  "report_output_dir": ".claude/skills/frontend-integration-tester/reports"
+}

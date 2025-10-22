@@ -1,0 +1,51 @@
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py:127: RuntimeWarning: 'utils.data_importers.playerprofile_importer' found in sys.modules after import of package 'utils.data_importers', but prior to execution of 'utils.data_importers.playerprofile_importer'; this may result in unpredictable behaviour
+  warn(RuntimeWarning(msg))
+2025-10-22 04:24:20,994 - INFO - ✅ Connected to: data/database/nfl_betting.db
+2025-10-22 04:24:20,994 - INFO - ✅ Initialized PlayerProfiler importer
+2025-10-22 04:24:20,994 - INFO -    Imports directory: /Users/vato/work/Bet-That/storage/imports
+2025-10-22 04:24:20,994 - INFO -    Database: data/database/nfl_betting.db
+2025-10-22 04:24:20,994 - INFO - 
+======================================================================
+2025-10-22 04:24:20,994 - INFO - 🚀 Starting PlayerProfiler import for 2024 season
+2025-10-22 04:24:20,994 - INFO - ======================================================================
+
+2025-10-22 04:24:20,994 - INFO - 📊 Step 1: Importing play-by-play data...
+2025-10-22 04:24:20,995 - INFO -    Loading PBP data from 2024-Advanced-PBP-Data.csv...
+2025-10-22 04:24:21,469 - INFO -    Snapshot saved: play_by_play_2024_20251022_042421.csv
+2025-10-22 04:24:21,741 - INFO - ✅ Upserted 41266 plays into play_by_play
+2025-10-22 04:24:21,742 - INFO -    Processed 41,266 of 43,178 plays
+2025-10-22 04:24:21,742 - INFO - ✅ Play-by-play: 41266 plays imported
+
+2025-10-22 04:24:21,742 - INFO - 📊 Step 2: Importing custom reports (kicker & QB stats)...
+2025-10-22 04:24:21,742 - INFO -    Loading custom reports from Custom Advanced Report (ALL_2024).csv...
+2025-10-22 04:24:21,767 - WARNING -    No kickers found in custom reports
+2025-10-22 04:24:21,767 - ERROR - ❌ Import failed: 'int' object has no attribute 'fillna'
+2025-10-22 04:24:21,767 - ERROR - 
+❌ Fatal error: 'int' object has no attribute 'fillna'
+2025-10-22 04:24:21,770 - INFO - ✅ Database connection closed
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py:127: RuntimeWarning: 'utils.data_importers.playerprofile_importer' found in sys.modules after import of package 'utils.data_importers', but prior to execution of 'utils.data_importers.playerprofile_importer'; this may result in unpredictable behaviour
+  warn(RuntimeWarning(msg))
+2025-10-22 04:25:21,464 - INFO - ✅ Connected to: data/database/nfl_betting.db
+2025-10-22 04:25:21,464 - INFO - ✅ Initialized PlayerProfiler importer
+2025-10-22 04:25:21,464 - INFO -    Imports directory: /Users/vato/work/Bet-That/storage/imports
+2025-10-22 04:25:21,464 - INFO -    Database: data/database/nfl_betting.db
+2025-10-22 04:25:21,464 - INFO - 
+======================================================================
+2025-10-22 04:25:21,464 - INFO - 🚀 Starting PlayerProfiler import for 2024 season
+2025-10-22 04:25:21,464 - INFO - ======================================================================
+
+2025-10-22 04:25:21,464 - INFO - 📊 Step 1: Importing play-by-play data...
+2025-10-22 04:25:21,464 - INFO -    Loading PBP data from 2024-Advanced-PBP-Data.csv...
+2025-10-22 04:25:21,920 - INFO -    Snapshot saved: play_by_play_2024_20251022_042521.csv
+2025-10-22 04:25:22,336 - INFO - ✅ Upserted 41266 plays into play_by_play
+2025-10-22 04:25:22,336 - INFO -    Processed 41,266 of 43,178 plays
+2025-10-22 04:25:22,336 - INFO - ✅ Play-by-play: 41266 plays imported
+
+2025-10-22 04:25:22,337 - INFO - 📊 Step 2: Importing custom reports (kicker & QB stats)...
+2025-10-22 04:25:22,337 - INFO -    Loading custom reports from Custom Advanced Report (ALL_2024).csv...
+2025-10-22 04:25:22,362 - WARNING -    No kickers found in custom reports
+2025-10-22 04:25:22,364 - INFO -    Snapshot saved: qb_stats_enhanced_2024_20251022_042522.csv
+2025-10-22 04:25:22,369 - ERROR - ❌ Import failed: UNIQUE constraint failed: qb_stats_enhanced.qb_name, qb_stats_enhanced.team, qb_stats_enhanced.season
+2025-10-22 04:25:22,369 - ERROR - 
+❌ Fatal error: UNIQUE constraint failed: qb_stats_enhanced.qb_name, qb_stats_enhanced.team, qb_stats_enhanced.season
+2025-10-22 04:25:22,371 - INFO - ✅ Database connection closed

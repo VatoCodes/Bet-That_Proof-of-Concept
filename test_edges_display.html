@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edge Display Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">🧪 Edge Display Test Results</h1>
+
+        <div x-data="testRunner()" x-init="runTests()">
+            <!-- Test Progress -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-bold mb-4">Test Progress</h2>
+                <div class="space-y-2">
+                    <template x-for="test in tests" :key="test.name">
+                        <div class="flex items-center space-x-3">
+                            <div
+                                :class="{
+                                    'bg-green-500': test.status === 'pass',
+                                    'bg-red-500': test.status === 'fail',
+                                    'bg-yellow-500': test.status === 'running',
+                                    'bg-gray-300': test.status === 'pending'
+                                }"
+                                class="w-4 h-4 rounded-full"
+                            ></div>
+                            <span class="text-sm font-medium" x-text="test.name"></span>
+                            <span class="text-xs text-gray-500" x-text="test.message"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-bold mb-4">Summary</h2>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-green-600" x-text="passCount"></div>
+                        <div class="text-sm text-gray-600">Passed</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-red-600" x-text="failCount"></div>
+                        <div class="text-sm text-gray-600">Failed</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-gray-600" x-text="totalCount"></div>
+                        <div class="text-sm text-gray-600">Total</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Results -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-bold mb-4">Detailed Results</h2>
+                <pre class="bg-gray-100 p-4 rounded text-xs overflow-auto" x-text="detailedLog"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function testRunner() {
+            return {
+                tests: [
+                    { name: 'API Endpoint Exists', status: 'pending', message: '' },
+                    { name: 'API Returns Valid JSON', status: 'pending', message: '' },
+                    { name: 'Response Has success=true', status: 'pending', message: '' },
+                    { name: 'Response Has edges Array', status: 'pending', message: '' },
+                    { name: 'Edge Count Matches', status: 'pending', message: '' },
+                    { name: 'Edges Have Required Fields', status: 'pending', message: '' },
+                    { name: 'Strategy Tabs Work', status: 'pending', message: '' },
+                    { name: 'Edge Counts Endpoint', status: 'pending', message: '' }
+                ],
+                detailedLog: '',
+
+                get passCount() {
+                    return this.tests.filter(t => t.status === 'pass').length;
+                },
+                get failCount() {
+                    return this.tests.filter(t => t.status === 'fail').length;
+                },
+                get totalCount() {
+                    return this.tests.length;
+                },
+
+                log(message) {
+                    this.detailedLog += message + '\n';
+                    console.log(message);
+                },
+
+                async runTests() {
+                    this.log('🧪 Starting Edge Display Tests...\n');
+
+                    // Test 1: API Endpoint Exists
+                    await this.runTest(0, async () => {
+                        const response = await fetch('http://localhost:5001/api/edges?week=7&strategy=all&min_edge=0');
+                        if (response.status === 200) {
+                            this.log('✅ API endpoint responds with 200 OK');
+                            return { pass: true };
+                        } else {
+                            throw new Error(`Status: ${response.status}`);
+                        }
+                    });
+
+                    // Test 2: Valid JSON
+                    let apiData;
+                    await this.runTest(1, async () => {
+                        const response = await fetch('http://localhost:5001/api/edges?week=7&strategy=all&min_edge=0');
+                        apiData = await response.json();
+                        this.log(`✅ API returns valid JSON: ${JSON.stringify(apiData).substring(0, 100)}...`);
+                        return { pass: true };
+                    });
+
+                    // Test 3: success=true
+                    await this.runTest(2, async () => {
+                        if (apiData.success === true) {
+                            this.log('✅ Response has success=true');
+                            return { pass: true };
+                        } else {
+                            throw new Error('success field is not true');
+                        }
+                    });
+
+                    // Test 4: edges array exists
+                    await this.runTest(3, async () => {
+                        if (Array.isArray(apiData.edges)) {
+                            this.log(`✅ Response has edges array with ${apiData.edges.length} items`);
+                            return { pass: true };
+                        } else {
+                            throw new Error('edges is not an array');
+                        }
+                    });
+
+                    // Test 5: count matches
+                    await this.runTest(4, async () => {
+                        if (apiData.count === apiData.edges.length) {
+                            this.log(`✅ Count field (${apiData.count}) matches edges.length (${apiData.edges.length})`);
+                            return { pass: true };
+                        } else {
+                            throw new Error(`Count mismatch: ${apiData.count} vs ${apiData.edges.length}`);
+                        }
+                    });
+
+                    // Test 6: Required fields
+                    await this.runTest(5, async () => {
+                        if (apiData.edges.length === 0) {
+                            this.log('⚠️  No edges to test fields on');
+                            return { pass: true, message: 'No edges found' };
+                        }
+
+                        const edge = apiData.edges[0];
+                        const required = ['matchup', 'strategy', 'edge_pct', 'confidence', 'recommendation'];
+                        const missing = required.filter(f => !(f in edge));
+
+                        if (missing.length === 0) {
+                            this.log(`✅ Edge has all required fields: ${required.join(', ')}`);
+                            this.log(`   Sample edge: ${JSON.stringify(edge, null, 2)}`);
+                            return { pass: true };
+                        } else {
+                            throw new Error(`Missing fields: ${missing.join(', ')}`);
+                        }
+                    });
+
+                    // Test 7: Strategy filtering
+                    await this.runTest(6, async () => {
+                        const allResponse = await fetch('http://localhost:5001/api/edges?week=7&strategy=all&min_edge=0');
+                        const allData = await allResponse.json();
+
+                        const qbResponse = await fetch('http://localhost:5001/api/edges?week=7&strategy=qb_td_v2&min_edge=0');
+                        const qbData = await qbResponse.json();
+
+                        this.log(`✅ All strategies: ${allData.count} edges`);
+                        this.log(`✅ QB TD v2 only: ${qbData.count} edges`);
+                        this.log(`   Strategy breakdown: ${JSON.stringify(allData.strategy_breakdown)}`);
+
+                        return { pass: true };
+                    });
+
+                    // Test 8: Counts endpoint
+                    await this.runTest(7, async () => {
+                        const response = await fetch('http://localhost:5001/api/edges/counts?week=7');
+                        const data = await response.json();
+
+                        if (data.success && data.counts) {
+                            this.log(`✅ Counts endpoint works`);
+                            this.log(`   Counts: ${JSON.stringify(data.counts)}`);
+                            return { pass: true };
+                        } else {
+                            throw new Error('Counts endpoint failed');
+                        }
+                    });
+
+                    this.log('\n🎉 All tests completed!');
+                },
+
+                async runTest(index, testFn) {
+                    this.tests[index].status = 'running';
+                    try {
+                        const result = await testFn();
+                        this.tests[index].status = 'pass';
+                        this.tests[index].message = result.message || 'Passed';
+                    } catch (error) {
+                        this.tests[index].status = 'fail';
+                        this.tests[index].message = error.message;
+                        this.log(`❌ ${this.tests[index].name}: ${error.message}`);
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>

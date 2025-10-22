@@ -738,7 +738,16 @@ function edgesData() {
                 });
 
                 const response = await fetch(`/api/edges?${params}`);
-                this.edges = await response.json();
+                const data = await response.json();
+
+                // FIX: Extract edges array from response object
+                if (data.success && data.edges) {
+                    this.edges = data.edges;
+                    console.log(`✅ Loaded ${this.edges.length} edges for ${this.activeStrategy}`);
+                } else {
+                    console.warn('API returned no edges or failed', data);
+                    this.edges = [];
+                }
             } catch (error) {
                 console.error('Error loading edges:', error);
                 this.edges = [];
@@ -773,20 +782,16 @@ function edgesData() {
         },
         
         generateCSV() {
-            const headers = ['QB', 'Team', 'Opponent', 'Week', 'Game Date', 'Sportsbook', 'True Prob (%)', 'Implied Prob (%)', 'Edge (%)', 'Tier', 'Bet Size ($)', 'Kelly (%)'];
+            // FIX: Updated to match strategy aggregator response structure
+            const headers = ['Matchup', 'Strategy', 'Line', 'Recommendation', 'Edge (%)', 'Confidence', 'Reasoning'];
             const rows = this.edges.map(edge => [
-                edge.qb_name,
-                edge.qb_team || 'N/A',
-                edge.opponent,
-                edge.week || 'N/A',
-                this.formatGameDate(edge.game_date),
-                edge.sportsbook || 'N/A',
-                (edge.true_probability * 100).toFixed(1),
-                (edge.implied_probability * 100).toFixed(1),
-                edge.edge_percentage.toFixed(1),
-                edge.bet_recommendation.tier,
-                edge.bet_recommendation.recommended_bet.toFixed(0),
-                edge.bet_recommendation.bankroll_percentage.toFixed(1)
+                edge.matchup || 'N/A',
+                edge.strategy || 'N/A',
+                edge.line || 'N/A',
+                edge.recommendation || 'N/A',
+                (edge.edge_pct || 0).toFixed(1),
+                edge.confidence || 'N/A',
+                (edge.reasoning || '').replace(/,/g, ';') // Replace commas to avoid CSV issues
             ]);
 
             return [headers, ...rows].map(row => row.join(',')).join('\n');
@@ -828,13 +833,20 @@ function edgesData() {
         
         get avgEdge() {
             if (this.edges.length === 0) return '0.0';
-            const total = this.edges.reduce((sum, edge) => sum + edge.edge_percentage, 0);
+            // FIX: Use edge_pct (from strategy aggregator) instead of edge_percentage
+            const total = this.edges.reduce((sum, edge) => sum + (edge.edge_pct || 0), 0);
             return (total / this.edges.length).toFixed(1);
         },
-        
+
         get expectedValue() {
             if (this.edges.length === 0) return '0';
-            const totalEV = this.edges.reduce((sum, edge) => sum + (edge.bet_recommendation.recommended_bet * edge.edge_percentage / 100), 0);
+            // FIX: Simplified EV calculation without bet_recommendation (which isn't in aggregator response)
+            // Assume standard $100 unit bet for now
+            const standardBet = 100;
+            const totalEV = this.edges.reduce((sum, edge) => {
+                const edgePct = edge.edge_pct || 0;
+                return sum + (standardBet * edgePct / 100);
+            }, 0);
             return totalEV.toFixed(0);
         }
     }

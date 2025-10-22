@@ -1,0 +1,38 @@
+{
+  "name": "Template Test Scenario",
+  "description": "Template for creating new test scenarios",
+  "url": "/your-page-here",
+  "wait_for_selector": "h1",
+  "expected_api_calls": [
+    {
+      "endpoint": "/api/endpoint-here",
+      "method": "GET",
+      "params": ["param1", "param2"],
+      "response_fields": ["field1", "field2"],
+      "nested_fields": {
+        "array_field": ["nested_field1", "nested_field2"]
+      }
+    }
+  ],
+  "expected_dom_elements": [
+    ".expected-element-1",
+    ".expected-element-2"
+  ],
+  "javascript_checks": [
+    "typeof myFunction === 'function'",
+    "document.querySelectorAll('.my-element').length > 0"
+  ],
+  "assertions": [
+    {
+      "type": "api_response_extracted",
+      "field": "field_name",
+      "message": "Description of what should be extracted"
+    },
+    {
+      "type": "dom_populated",
+      "selector": ".element-class",
+      "min_count": 1,
+      "message": "Description of expected DOM state"
+    }
+  ]
+}

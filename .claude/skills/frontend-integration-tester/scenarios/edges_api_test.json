@@ -1,0 +1,52 @@
+{
+  "name": "Edges Page API Integration",
+  "description": "Test /edges page API integration and data extraction",
+  "url": "/edges",
+  "wait_for_selector": "[x-data]",
+  "expected_api_calls": [
+    {
+      "endpoint": "/api/edges",
+      "method": "GET",
+      "params": ["week", "strategy"],
+      "response_fields": ["success", "edges", "count", "week", "strategy_breakdown"],
+      "nested_fields": {
+        "edges": ["matchup", "strategy", "line", "recommendation", "edge_pct", "confidence"]
+      }
+    },
+    {
+      "endpoint": "/api/edges/counts",
+      "method": "GET",
+      "params": ["week"],
+      "response_fields": ["success", "week", "counts"]
+    }
+  ],
+  "expected_dom_elements": [
+    "[x-data]",
+    ".strategy-tab",
+    "#edges-container",
+    ".edge-card"
+  ],
+  "javascript_checks": [
+    "typeof edgesDashboard === 'function'",
+    "window.Alpine !== undefined",
+    "document.querySelectorAll('.edge-card').length >= 0"
+  ],
+  "assertions": [
+    {
+      "type": "api_response_extracted",
+      "field": "edges",
+      "message": "Frontend should extract edges array from response.edges"
+    },
+    {
+      "type": "dom_populated",
+      "selector": ".strategy-tab",
+      "min_count": 1,
+      "message": "Strategy tabs should be populated"
+    },
+    {
+      "type": "api_call_made",
+      "endpoint": "/api/edges",
+      "message": "Page should make API call to fetch edges"
+    }
+  ]
+}

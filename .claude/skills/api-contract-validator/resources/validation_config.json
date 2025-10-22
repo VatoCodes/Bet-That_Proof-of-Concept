@@ -1,0 +1,14 @@
+{
+  "backend_url": "http://localhost:5001",
+  "frontend_paths": [
+    "dashboard/templates/*.html",
+    "dashboard/static/js/*.js"
+  ],
+  "validation_mode": "strict",
+  "auto_fix_suggestions": true,
+  "alert_on_failure": true,
+  "alert_recipients": ["dev@example.com"],
+  "excluded_endpoints": [],
+  "custom_validators": {},
+  "report_output_dir": ".claude/skills/api-contract-validator/reports"
+}

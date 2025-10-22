@@ -1,0 +1,42 @@
+{
+  "name": "Dashboard Page API Integration",
+  "description": "Test main dashboard page API integration",
+  "url": "/",
+  "wait_for_selector": "h1",
+  "expected_api_calls": [
+    {
+      "endpoint": "/api/current-week",
+      "method": "GET",
+      "response_fields": ["success", "week"]
+    },
+    {
+      "endpoint": "/api/edges",
+      "method": "GET",
+      "params": ["week"],
+      "response_fields": ["success", "edges", "count"]
+    }
+  ],
+  "expected_dom_elements": [
+    "h1",
+    ".dashboard-card",
+    ".week-indicator",
+    ".stats-container"
+  ],
+  "javascript_checks": [
+    "document.title.length > 0",
+    "document.querySelectorAll('.dashboard-card').length > 0"
+  ],
+  "assertions": [
+    {
+      "type": "api_response_extracted",
+      "field": "week",
+      "message": "Current week should be extracted from API"
+    },
+    {
+      "type": "dom_populated",
+      "selector": ".dashboard-card",
+      "min_count": 1,
+      "message": "Dashboard should display at least one card"
+    }
+  ]
+}

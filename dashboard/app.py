@@ -13,8 +13,14 @@ from utils.query_tools import DatabaseQueryTools
 from utils.edge_calculator import EdgeCalculator
 from utils.week_manager import WeekManager
 from utils.data_validator import DataValidator
+from utils.strategy_aggregator import StrategyAggregator
 from config import get_current_week
 import importlib.util
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'nfl-edge-finder-secret-key-change-in-production'
@@ -23,6 +29,7 @@ CORS(app)
 # Initialize components
 db = DatabaseManager()
 week_manager = WeekManager()
+strategy_aggregator = StrategyAggregator()  # NEW: Multi-strategy edge aggregator
 
 @app.route('/')
 def index():
@@ -36,24 +43,120 @@ def api_current_week():
     week = get_current_week()
     return jsonify({'week': week})
 
-@app.route('/api/edges')
+@app.route('/api/edges', methods=['GET'])
 def api_edges():
-    """Get edge opportunities"""
-    week = request.args.get('week', get_current_week(), type=int)
-    min_edge = request.args.get('min_edge', 0.05, type=float)
-    model = request.args.get('model', 'v1', type=str)
+    """
+    Get betting edges for a given week.
 
-    # Initialize edge calculator
-    calculator = EdgeCalculator(model_version=model)
+    Query Parameters:
+        week (int): NFL week number (1-18)
+        strategy (str): Filter by strategy - 'all', 'first_half', 'qb_td_v2', 'kicker' (default: 'all')
+        min_edge (float): Minimum edge percentage (default: 5.0)
+        season (int): NFL season year (default: 2024)
 
-    # Get edges
-    edges = calculator.find_edges_for_week(week=week, threshold=min_edge)
+        # Legacy parameters (for backward compatibility):
+        model (str): 'v1' or 'v2' (deprecated, use strategy='qb_td_v2')
 
-    # Add week number to each edge for display
-    for edge in edges:
-        edge['week'] = week
+    Returns:
+        JSON with edges, count, metadata
+    """
+    try:
+        # Get parameters
+        week = request.args.get('week', type=int)
+        strategy = request.args.get('strategy', 'all')  # NEW
+        min_edge = request.args.get('min_edge', 5.0, type=float)
+        season = request.args.get('season', 2024, type=int)
 
-    return jsonify(edges)
+        # Legacy support for 'model' parameter
+        model = request.args.get('model')
+        if model:
+            logger.warning(f"Legacy 'model' parameter used: {model}. Use 'strategy' instead.")
+            # Map old model param to new strategy param
+            if model == 'v2':
+                strategy = 'qb_td_v2'
+
+        # Validate week
+        if not week or week < 1 or week > 18:
+            return jsonify({'error': 'Invalid week. Must be 1-18.'}), 400
+
+        # Validate strategy
+        valid_strategies = ['all', 'first_half', 'qb_td_v2', 'kicker']
+        if strategy not in valid_strategies:
+            return jsonify({'error': f'Invalid strategy. Must be one of: {valid_strategies}'}), 400
+
+        # Get edges using aggregator
+        logger.info(f"Fetching edges: week={week}, strategy={strategy}, min_edge={min_edge}")
+        edges = strategy_aggregator.get_all_edges(
+            week=week,
+            season=season,
+            min_edge=min_edge,
+            strategy=strategy if strategy != 'all' else None
+        )
+
+        # Group edges by strategy for response metadata
+        strategy_breakdown = {}
+        for edge in edges:
+            strat = edge.get('strategy', 'Unknown')
+            strategy_breakdown[strat] = strategy_breakdown.get(strat, 0) + 1
+
+        return jsonify({
+            'edges': edges,
+            'count': len(edges),
+            'week': week,
+            'season': season,
+            'strategy_filter': strategy,
+            'min_edge': min_edge,
+            'strategy_breakdown': strategy_breakdown,
+            'success': True
+        })
+
+    except Exception as e:
+        logger.error(f"Error fetching edges: {str(e)}")
+        return jsonify({
+            'error': 'Failed to fetch edges',
+            'message': str(e),
+            'success': False
+        }), 500
+
+@app.route('/api/edges/counts', methods=['GET'])
+def api_edge_counts():
+    """
+    Get quick edge counts per strategy (for tab badges).
+
+    Query Parameters:
+        week (int): NFL week number (1-18)
+        season (int): NFL season year (default: 2024)
+
+    Returns:
+        JSON: {"counts": {"first_half": 3, "qb_td_v2": 5, "kicker": 0, "total": 8}, ...}
+    """
+    try:
+        # Get parameters
+        week = request.args.get('week', type=int)
+        season = request.args.get('season', 2024, type=int)
+
+        # Validate week
+        if not week or week < 1 or week > 18:
+            return jsonify({'error': 'Invalid week. Must be 1-18.'}), 400
+
+        # Get counts using aggregator
+        logger.info(f"Fetching edge counts: week={week}, season={season}")
+        counts = strategy_aggregator.get_edge_counts(week=week, season=season)
+
+        return jsonify({
+            'counts': counts,
+            'week': week,
+            'season': season,
+            'success': True
+        })
+
+    except Exception as e:
+        logger.error(f"Error fetching edge counts: {str(e)}")
+        return jsonify({
+            'error': 'Failed to fetch edge counts',
+            'message': str(e),
+            'success': False
+        }), 500
 
 @app.route('/api/week-range')
 def api_week_range():

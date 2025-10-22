@@ -346,6 +346,233 @@ class DatabaseManager:
             self.conn.close()
             logger.info("✅ Database connection closed")
 
+    # ========================================================================
+    # PLAYERPROFILE DATA METHODS (Phase 1 - Migration 002)
+    # ========================================================================
+
+    def _get_connection(self):
+        """Get database connection (create if needed)"""
+        if not self.conn:
+            self.connect()
+        return self.conn
+
+    def upsert_play_by_play(self, df):
+        """
+        Insert or update play-by-play data (upsert on play_id)
+
+        Args:
+            df: DataFrame with play-by-play data
+
+        Returns:
+            int: Number of rows inserted
+        """
+        conn = self._get_connection()
+
+        # SQLite UPSERT: DELETE existing rows with same play_id, then INSERT
+        play_ids = df['play_id'].tolist()
+        if play_ids:
+            placeholders = ','.join('?' * len(play_ids))
+            conn.execute(f"DELETE FROM play_by_play WHERE play_id IN ({placeholders})", play_ids)
+
+        # Insert new records
+        df.to_sql('play_by_play', conn, if_exists='append', index=False)
+        conn.commit()
+
+        logger.info(f"✅ Upserted {len(df)} plays into play_by_play")
+        return len(df)
+
+    def upsert_team_metrics(self, df):
+        """
+        Insert or update team metrics (upsert on team_name, season, week)
+
+        Args:
+            df: DataFrame with team metrics
+
+        Returns:
+            int: Number of rows inserted
+        """
+        conn = self._get_connection()
+
+        # Delete existing rows for (team, season, week) tuples
+        for _, row in df.iterrows():
+            conn.execute(
+                "DELETE FROM team_metrics WHERE team_name=? AND season=? AND week=?",
+                (row['team_name'], row['season'], row['week'])
+            )
+
+        # Insert new records
+        df.to_sql('team_metrics', conn, if_exists='append', index=False)
+        conn.commit()
+
+        logger.info(f"✅ Upserted {len(df)} team metrics into team_metrics")
+        return len(df)
+
+    def upsert_kicker_stats(self, df):
+        """
+        Insert or update kicker stats (upsert on kicker_name, team, season)
+
+        Args:
+            df: DataFrame with kicker stats
+
+        Returns:
+            int: Number of rows inserted
+        """
+        conn = self._get_connection()
+
+        # Delete existing rows for (kicker, team, season) tuples
+        for _, row in df.iterrows():
+            conn.execute(
+                "DELETE FROM kicker_stats WHERE kicker_name=? AND team=? AND season=?",
+                (row['kicker_name'], row['team'], row['season'])
+            )
+
+        # Insert new records
+        df.to_sql('kicker_stats', conn, if_exists='append', index=False)
+        conn.commit()
+
+        logger.info(f"✅ Upserted {len(df)} kicker stats into kicker_stats")
+        return len(df)
+
+    def upsert_qb_stats_enhanced(self, df):
+        """
+        Insert or update enhanced QB stats (upsert on qb_name, team, season)
+
+        Args:
+            df: DataFrame with enhanced QB stats
+
+        Returns:
+            int: Number of rows inserted
+        """
+        conn = self._get_connection()
+
+        # Delete existing rows for (qb, team, season) tuples
+        for _, row in df.iterrows():
+            conn.execute(
+                "DELETE FROM qb_stats_enhanced WHERE qb_name=? AND team=? AND season=?",
+                (row['qb_name'], row['team'], row['season'])
+            )
+
+        # Insert new records
+        df.to_sql('qb_stats_enhanced', conn, if_exists='append', index=False)
+        conn.commit()
+
+        logger.info(f"✅ Upserted {len(df)} QB stats into qb_stats_enhanced")
+        return len(df)
+
+    def upsert_player_roster(self, df):
+        """
+        Insert or update player roster (upsert on player_name, team, season, week)
+
+        Args:
+            df: DataFrame with player roster data
+
+        Returns:
+            int: Number of rows inserted
+        """
+        conn = self._get_connection()
+
+        # Delete existing rows for (player, team, season, week) tuples
+        for _, row in df.iterrows():
+            conn.execute(
+                "DELETE FROM player_roster WHERE player_name=? AND team=? AND season=? AND week=?",
+                (row['player_name'], row['team'], row['season'], row['week'])
+            )
+
+        # Insert new records
+        df.to_sql('player_roster', conn, if_exists='append', index=False)
+        conn.commit()
+
+        logger.info(f"✅ Upserted {len(df)} roster entries into player_roster")
+        return len(df)
+
+    def get_team_metrics(self, team_name, season, week):
+        """
+        Retrieve team metrics for edge calculations
+
+        Args:
+            team_name: Team name
+            season: Season year
+            week: Week number
+
+        Returns:
+            dict or None: Team metrics dictionary or None if not found
+        """
+        query = """
+            SELECT * FROM team_metrics
+            WHERE team_name = ? AND season = ? AND week = ?
+        """
+        conn = self._get_connection()
+        result = pd.read_sql_query(query, conn, params=(team_name, season, week))
+
+        if not result.empty:
+            return result.to_dict('records')[0]
+        return None
+
+    def get_kicker_stats(self, kicker_name, season):
+        """
+        Retrieve kicker stats for edge calculations
+
+        Args:
+            kicker_name: Kicker name
+            season: Season year
+
+        Returns:
+            dict or None: Kicker stats dictionary or None if not found
+        """
+        query = """
+            SELECT * FROM kicker_stats
+            WHERE kicker_name = ? AND season = ?
+        """
+        conn = self._get_connection()
+        result = pd.read_sql_query(query, conn, params=(kicker_name, season))
+
+        if not result.empty:
+            return result.to_dict('records')[0]
+        return None
+
+    def get_qb_stats_enhanced(self, qb_name, season):
+        """
+        Retrieve enhanced QB stats for v2 calculator
+
+        Args:
+            qb_name: QB name
+            season: Season year
+
+        Returns:
+            dict or None: QB stats dictionary or None if not found
+        """
+        query = """
+            SELECT * FROM qb_stats_enhanced
+            WHERE qb_name = ? AND season = ?
+        """
+        conn = self._get_connection()
+        result = pd.read_sql_query(query, conn, params=(qb_name, season))
+
+        if not result.empty:
+            return result.to_dict('records')[0]
+        return None
+
+    def get_active_players(self, position, week, season):
+        """
+        Get active players for given position/week (uses roster table)
+
+        Args:
+            position: Position code (QB, K, RB, WR, TE)
+            week: Week number
+            season: Season year
+
+        Returns:
+            list: List of dictionaries with player_name and team
+        """
+        query = """
+            SELECT player_name, team FROM player_roster
+            WHERE position = ? AND week = ? AND season = ? AND status = 'Active'
+        """
+        conn = self._get_connection()
+        result = pd.read_sql_query(query, conn, params=(position, week, season))
+
+        return result.to_dict('records')
+
 
 def main():
     """CLI interface for database management"""

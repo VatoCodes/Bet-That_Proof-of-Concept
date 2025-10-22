@@ -327,11 +327,10 @@
                 <table class="w-full">
                     <thead>
                         <tr class="border-b">
-                            <th class="text-left py-2">QB</th>
-                            <th class="text-left py-2">Opponent</th>
-                            <th class="text-left py-2">Sportsbook</th>
-                            <th class="text-left py-2">True Prob</th>
-                            <th class="text-left py-2">Implied</th>
+                            <th class="text-left py-2">Matchup</th>
+                            <th class="text-left py-2">Strategy</th>
+                            <th class="text-left py-2">Line</th>
+                            <th class="text-left py-2">Recommendation</th>
                             <th class="text-left py-2">
                                 <div class="flex items-center gap-2">
                                     <span>Edge</span>
@@ -342,74 +341,41 @@
                                     </button>
                                 </div>
                             </th>
-                            <th class="text-left py-2">Tier</th>
-                            <th class="text-left py-2">Bet Size</th>
+                            <th class="text-left py-2">Confidence</th>
                         </tr>
                     </thead>
                     <tbody>
                         <template x-for="(edge, index) in edges" :key="index">
-                            <tr class="border-b hover:bg-gray-50" x-data="{ showTooltip: false }">
-                                <td class="py-3" x-text="edge.qb_name"></td>
-                                <td class="py-3" x-text="edge.opponent"></td>
-                                <td class="py-3" x-text="edge.sportsbook || 'N/A'"></td>
-                                <td class="py-3" x-text="(edge.true_probability * 100).toFixed(1) + '%'"></td>
-                                <td class="py-3" x-text="(edge.implied_probability * 100).toFixed(1) + '%'"></td>
-                                <td class="py-3 relative">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-bold"
-                                              :class="edge.edge_percentage > 15 ? 'text-green-600' :
-                                                      edge.edge_percentage > 10 ? 'text-yellow-600' :
-                                                      'text-blue-600'"
-                                              x-text="'+' + edge.edge_percentage.toFixed(1) + '%'"></span>
-                                        <button @click="showTooltip = !showTooltip"
-                                                @mouseenter="showTooltip = true"
-                                                @mouseleave="showTooltip = false"
-                                                class="text-blue-500 hover:text-blue-700 cursor-help w-4 h-4 flex items-center justify-center rounded-full border border-blue-400 text-xs font-bold">
-                                            ?
-                                        </button>
-                                        <!-- Tooltip -->
-                                        <div x-show="showTooltip"
-                                             x-cloak
-                                             class="absolute z-50 left-0 top-full mt-1 w-96 bg-gray-900 text-white text-xs rounded-lg shadow-lg p-4"
-                                             @click.away="showTooltip = false">
-                                            <div class="font-bold mb-2 text-sm border-b border-gray-700 pb-2" x-text="edge.qb_name + ' Calculation'"></div>
-                                            <div class="space-y-2 font-mono">
-                                                <div>
-                                                    <span class="text-blue-300">Step 1:</span> QB Rate<br>
-                                                    <span class="text-gray-300 ml-2" x-text="'qb_td_per_game = ' + edge.qb_td_per_game.toFixed(2)"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-red-300">Step 2:</span> Defense Rate<br>
-                                                    <span class="text-gray-300 ml-2" x-text="'defense_tds_per_game = ' + edge.defense_tds_per_game.toFixed(2)"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-purple-300">Step 3:</span> Weighted Base<br>
-                                                    <span class="text-gray-300 ml-2" x-text="'(' + edge.qb_td_per_game.toFixed(2) + ' × 0.6) + (' + edge.defense_tds_per_game.toFixed(2) + ' × 0.4)'"></span><br>
-                                                    <span class="text-gray-300 ml-2" x-text="'= ' + edge.base_probability.toFixed(3)"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-orange-300">Step 4:</span> Home Field<br>
-                                                    <span class="text-gray-300 ml-2" x-text="edge.base_probability.toFixed(3) + ' × ' + (edge.home_field_advantage ? '1.10 (home)' : '1.00 (away)')"></span><br>
-                                                    <span class="text-gray-300 ml-2" x-text="'= ' + edge.adjusted_probability.toFixed(3)"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-green-300">Step 5:</span> Final Probability<br>
-                                                    <span class="text-gray-300 ml-2" x-text="edge.adjusted_probability.toFixed(3) + ' × 0.6'"></span><br>
-                                                    <span class="text-yellow-300 ml-2 font-bold" x-text="'= ' + (edge.true_probability * 100).toFixed(1) + '%'"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="py-3 font-medium" x-text="edge.matchup"></td>
+                                <td class="py-3">
+                                    <span
+                                        :class="{
+                                            'bg-purple-100 text-purple-800': edge.strategy && edge.strategy.includes('First Half'),
+                                            'bg-blue-100 text-blue-800': edge.strategy && edge.strategy.includes('QB TD'),
+                                            'bg-orange-100 text-orange-800': edge.strategy && edge.strategy.includes('Kicker')
+                                        }"
+                                        class="px-2 py-1 rounded text-xs font-semibold"
+                                        x-text="edge.strategy"></span>
+                                </td>
+                                <td class="py-3" x-text="edge.line"></td>
+                                <td class="py-3 font-medium text-blue-600" x-text="edge.recommendation"></td>
+                                <td class="py-3">
+                                    <span class="font-bold text-lg"
+                                          :class="(edge.edge_pct || 0) > 15 ? 'text-green-600' :
+                                                  (edge.edge_pct || 0) > 10 ? 'text-yellow-600' :
+                                                  'text-blue-600'"
+                                          x-text="'+' + (edge.edge_pct || 0).toFixed(1) + '%'"></span>
                                 </td>
                                 <td class="py-3">
-                                    <span class="px-2 py-1 rounded text-xs"
-                                          :class="edge.bet_recommendation.tier === 'STRONG EDGE' ? 'bg-green-100 text-green-800' :
-                                                  edge.bet_recommendation.tier === 'GOOD EDGE' ? 'bg-yellow-100 text-yellow-800' :
-                                                  edge.bet_recommendation.tier === 'SMALL EDGE' ? 'bg-blue-100 text-blue-800' :
-                                                  'bg-gray-100 text-gray-800'"
-                                          x-text="edge.bet_recommendation.tier"></span>
+                                    <span class="px-2 py-1 rounded text-xs font-semibold"
+                                          :class="{
+                                              'bg-green-100 text-green-800': edge.confidence === 'HIGH',
+                                              'bg-yellow-100 text-yellow-800': edge.confidence === 'MEDIUM',
+                                              'bg-blue-100 text-blue-800': edge.confidence === 'LOW'
+                                          }"
+                                          x-text="edge.confidence"></span>
                                 </td>
-                                <td class="py-3" x-text="'$' + edge.bet_recommendation.recommended_bet.toFixed(0)"></td>
                             </tr>
                         </template>
                     </tbody>
@@ -440,6 +406,7 @@
 function dashboardData() {
     return {
         showEdgeModal: false,
+        currentWeek: {{ current_week }},  // FIX: Add currentWeek from template
         stats: {
             edge_count: 0,
             weak_defense_count: 0,
@@ -448,7 +415,7 @@ function dashboardData() {
         },
         edges: [],
         weakDefenses: [],
-        
+
         async init() {
             await this.checkDataStatus();
             await this.loadEdges();
@@ -483,8 +450,18 @@ function dashboardData() {
         
         async loadEdges() {
             try {
-                const response = await fetch('/api/edges?min_edge=0.05');
-                this.edges = await response.json();
+                // FIX: Include week parameter (required by API)
+                const response = await fetch(`/api/edges?week=${this.currentWeek}&min_edge=0.05&strategy=all`);
+                const data = await response.json();
+
+                // FIX: Extract edges array from response object
+                if (data.success && data.edges) {
+                    this.edges = data.edges;
+                    console.log(`✅ Dashboard loaded ${this.edges.length} edges for week ${this.currentWeek}`);
+                } else {
+                    console.warn('API returned no edges or failed', data);
+                    this.edges = [];
+                }
             } catch (error) {
                 console.error('Error loading edges:', error);
                 this.edges = [];
@@ -504,12 +481,18 @@ function dashboardData() {
         updateStats() {
             this.stats.edge_count = this.edges.length;
             this.stats.weak_defense_count = this.weakDefenses.length;
-            
+
             if (this.edges.length > 0) {
-                const totalEdge = this.edges.reduce((sum, e) => sum + e.edge_percentage, 0);
+                // FIX: Use edge_pct instead of edge_percentage
+                const totalEdge = this.edges.reduce((sum, e) => sum + (e.edge_pct || 0), 0);
                 this.stats.avg_edge = (totalEdge / this.edges.length).toFixed(1);
-                
-                const totalEV = this.edges.reduce((sum, e) => sum + (e.bet_recommendation.recommended_bet * e.edge_percentage / 100), 0);
+
+                // FIX: Simplified EV calculation (no bet_recommendation in aggregator response)
+                const standardBet = 100;
+                const totalEV = this.edges.reduce((sum, e) => {
+                    const edgePct = e.edge_pct || 0;
+                    return sum + (standardBet * edgePct / 100);
+                }, 0);
                 this.stats.expected_value = totalEV.toFixed(0);
             }
         },

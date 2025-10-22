@@ -1,0 +1,11 @@
+{
+  "edge_pct": ["edge_percentage", "edge%", "edgePercent", "edge_percent"],
+  "matchup": ["match", "game", "opponent", "pair"],
+  "confidence": ["confidence_level", "confidence_pct", "conf"],
+  "recommendation": ["recommend", "suggested_action", "action"],
+  "week": ["week_number", "currentWeek", "weekNum"],
+  "success": ["ok", "valid", "status", "result"],
+  "edges": ["edge_list", "opportunities", "items"],
+  "count": ["total", "num_edges", "length"],
+  "strategy_breakdown": ["strategies", "breakdown", "summary"]
+}
