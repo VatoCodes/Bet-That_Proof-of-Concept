@@ -75,6 +75,7 @@
                                 <th class="text-left py-2">QB</th>
                                 <th class="text-left py-2">Team</th>
                                 <th class="text-left py-2">Opponent</th>
+                                <th class="text-left py-2">Sportsbook</th>
                                 <th class="text-left py-2">True Prob</th>
                                 <th class="text-left py-2">Implied</th>
                                 <th class="text-left py-2">Edge</th>
@@ -89,6 +90,7 @@
                                     <td class="py-3 font-medium" x-text="edge.qb_name"></td>
                                     <td class="py-3" x-text="edge.qb_team || 'N/A'"></td>
                                     <td class="py-3" x-text="edge.opponent"></td>
+                                    <td class="py-3" x-text="edge.sportsbook || 'N/A'"></td>
                                     <td class="py-3" x-text="(edge.true_probability * 100).toFixed(1) + '%'"></td>
                                     <td class="py-3" x-text="(edge.implied_probability * 100).toFixed(1) + '%'"></td>
                                     <td class="py-3">
@@ -185,11 +187,12 @@ function edgesData() {
         },
         
         generateCSV() {
-            const headers = ['QB', 'Team', 'Opponent', 'True Prob (%)', 'Implied Prob (%)', 'Edge (%)', 'Tier', 'Bet Size ($)', 'Kelly (%)'];
+            const headers = ['QB', 'Team', 'Opponent', 'Sportsbook', 'True Prob (%)', 'Implied Prob (%)', 'Edge (%)', 'Tier', 'Bet Size ($)', 'Kelly (%)'];
             const rows = this.edges.map(edge => [
                 edge.qb_name,
                 edge.qb_team || 'N/A',
                 edge.opponent,
+                edge.sportsbook || 'N/A',
                 (edge.true_probability * 100).toFixed(1),
                 (edge.implied_probability * 100).toFixed(1),
                 edge.edge_percentage.toFixed(1),
@@ -197,7 +200,7 @@ function edgesData() {
                 edge.bet_recommendation.recommended_bet.toFixed(0),
                 edge.bet_recommendation.bankroll_percentage.toFixed(1)
             ]);
-            
+
             return [headers, ...rows].map(row => row.join(',')).join('\n');
         },
         

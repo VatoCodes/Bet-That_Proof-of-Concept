@@ -39,6 +39,7 @@
                         <tr class="border-b">
                             <th class="text-left py-2">QB</th>
                             <th class="text-left py-2">Opponent</th>
+                            <th class="text-left py-2">Sportsbook</th>
                             <th class="text-left py-2">True Prob</th>
                             <th class="text-left py-2">Implied</th>
                             <th class="text-left py-2">Edge</th>
@@ -51,6 +52,7 @@
                             <tr class="border-b hover:bg-gray-50">
                                 <td class="py-3" x-text="edge.qb_name"></td>
                                 <td class="py-3" x-text="edge.opponent"></td>
+                                <td class="py-3" x-text="edge.sportsbook || 'N/A'"></td>
                                 <td class="py-3" x-text="(edge.true_probability * 100).toFixed(1) + '%'"></td>
                                 <td class="py-3" x-text="(edge.implied_probability * 100).toFixed(1) + '%'"></td>
                                 <td class="py-3">
