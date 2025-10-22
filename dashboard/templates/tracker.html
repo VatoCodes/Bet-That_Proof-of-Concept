@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div x-data="trackerData()" x-init="init()">
+    <!-- Bet Entry Form -->
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-bold">📝 Log New Bet</h2>
+        </div>
+        <div class="p-6">
+            <form @submit.prevent="addBet()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">QB</label>
+                    <input type="text" x-model="newBet.qb_name" required
+                           class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Opponent</label>
+                    <input type="text" x-model="newBet.opponent" required
+                           class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Bet Amount ($)</label>
+                    <input type="number" x-model="newBet.amount" required min="1" step="0.01"
+                           class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Odds</label>
+                    <input type="number" x-model="newBet.odds" required step="1"
+                           class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Predicted Prob (%)</label>
+                    <input type="number" x-model="newBet.predicted_prob" required min="0" max="100" step="0.1"
+                           class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sportsbook</label>
+                    <select x-model="newBet.sportsbook" required
+                            class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="">Select...</option>
+                        <option value="DraftKings">DraftKings</option>
+                        <option value="FanDuel">FanDuel</option>
+                        <option value="BetMGM">BetMGM</option>
+                        <option value="Caesars">Caesars</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Week</label>
+                    <input type="number" x-model="newBet.week" required min="1" max="18"
+                           class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" 
+                            class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        💰 Log Bet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Performance Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Total Bets</div>
+            <div class="text-3xl font-bold text-blue-600" x-text="bets.length"></div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Win Rate</div>
+            <div class="text-3xl font-bold text-green-600" x-text="winRate + '%'"></div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Total ROI</div>
+            <div class="text-3xl font-bold" :class="totalROI >= 0 ? 'text-green-600' : 'text-red-600'" 
+                 x-text="totalROI + '%'"></div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Profit/Loss</div>
+            <div class="text-3xl font-bold" :class="profitLoss >= 0 ? 'text-green-600' : 'text-red-600'" 
+                 x-text="'$' + profitLoss"></div>
+        </div>
+    </div>
+
+    <!-- Bet History -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-bold">📊 Bet History</h2>
+        </div>
+        <div class="p-6">
+            <div x-show="bets.length === 0" class="text-center text-gray-500 py-8">
+                <div class="text-4xl mb-4">📝</div>
+                <p>No bets logged yet</p>
+                <p class="text-sm mt-2">Log your first bet using the form above</p>
+            </div>
+            
+            <div x-show="bets.length > 0" class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-2">Week</th>
+                            <th class="text-left py-2">QB</th>
+                            <th class="text-left py-2">Opponent</th>
+                            <th class="text-left py-2">Amount</th>
+                            <th class="text-left py-2">Odds</th>
+                            <th class="text-left py-2">Predicted</th>
+                            <th class="text-left py-2">Result</th>
+                            <th class="text-left py-2">P&L</th>
+                            <th class="text-left py-2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="(bet, index) in bets" :key="bet.id">
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="py-3" x-text="bet.week"></td>
+                                <td class="py-3 font-medium" x-text="bet.qb_name"></td>
+                                <td class="py-3" x-text="bet.opponent"></td>
+                                <td class="py-3" x-text="'$' + bet.amount"></td>
+                                <td class="py-3" x-text="bet.odds"></td>
+                                <td class="py-3" x-text="bet.predicted_prob + '%'"></td>
+                                <td class="py-3">
+                                    <span x-show="bet.result === 'win'" class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Win</span>
+                                    <span x-show="bet.result === 'loss'" class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Loss</span>
+                                    <span x-show="!bet.result" class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Pending</span>
+                                </td>
+                                <td class="py-3">
+                                    <span x-show="bet.result === 'win'" class="text-green-600 font-bold" x-text="'+$' + bet.payout"></span>
+                                    <span x-show="bet.result === 'loss'" class="text-red-600 font-bold" x-text="'-$' + bet.amount"></span>
+                                    <span x-show="!bet.result" class="text-gray-500">-</span>
+                                </td>
+                                <td class="py-3">
+                                    <div x-show="!bet.result" class="flex space-x-2">
+                                        <button @click="recordResult(index, 'win')" 
+                                                class="text-green-600 hover:text-green-800 text-sm">Win</button>
+                                        <button @click="recordResult(index, 'loss')" 
+                                                class="text-red-600 hover:text-red-800 text-sm">Loss</button>
+                                    </div>
+                                    <div x-show="bet.result" class="text-gray-500 text-sm">Complete</div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function trackerData() {
+    return {
+        bets: [],
+        newBet: {
+            qb_name: '',
+            opponent: '',
+            amount: '',
+            odds: '',
+            predicted_prob: '',
+            sportsbook: '',
+            week: {{ current_week }}
+        },
+        
+        init() {
+            this.loadBets();
+        },
+        
+        loadBets() {
+            // Load from localStorage for now
+            const saved = localStorage.getItem('nfl_bets');
+            this.bets = saved ? JSON.parse(saved) : [];
+        },
+        
+        saveBets() {
+            localStorage.setItem('nfl_bets', JSON.stringify(this.bets));
+        },
+        
+        addBet() {
+            const bet = {
+                id: Date.now(),
+                ...this.newBet,
+                amount: parseFloat(this.newBet.amount),
+                odds: parseInt(this.newBet.odds),
+                predicted_prob: parseFloat(this.newBet.predicted_prob),
+                week: parseInt(this.newBet.week),
+                result: null,
+                payout: 0
+            };
+            
+            this.bets.unshift(bet);
+            this.saveBets();
+            
+            // Reset form
+            this.newBet = {
+                qb_name: '',
+                opponent: '',
+                amount: '',
+                odds: '',
+                predicted_prob: '',
+                sportsbook: '',
+                week: {{ current_week }}
+            };
+            
+            alert('Bet logged successfully!');
+        },
+        
+        recordResult(index, result) {
+            const bet = this.bets[index];
+            bet.result = result;
+            
+            if (result === 'win') {
+                // Calculate payout based on odds
+                const odds = bet.odds;
+                const amount = bet.amount;
+                
+                if (odds > 0) {
+                    bet.payout = amount + (amount * odds / 100);
+                } else {
+                    bet.payout = amount + (amount * 100 / Math.abs(odds));
+                }
+            }
+            
+            this.saveBets();
+        },
+        
+        get winRate() {
+            const completed = this.bets.filter(bet => bet.result);
+            if (completed.length === 0) return '0.0';
+            const wins = completed.filter(bet => bet.result === 'win').length;
+            return ((wins / completed.length) * 100).toFixed(1);
+        },
+        
+        get totalROI() {
+            const completed = this.bets.filter(bet => bet.result);
+            if (completed.length === 0) return '0.0';
+            
+            const totalWagered = completed.reduce((sum, bet) => sum + bet.amount, 0);
+            const totalWon = completed.reduce((sum, bet) => sum + (bet.result === 'win' ? bet.payout : 0), 0);
+            
+            return (((totalWon - totalWagered) / totalWagered) * 100).toFixed(1);
+        },
+        
+        get profitLoss() {
+            const completed = this.bets.filter(bet => bet.result);
+            if (completed.length === 0) return '0.00';
+            
+            const totalWagered = completed.reduce((sum, bet) => sum + bet.amount, 0);
+            const totalWon = completed.reduce((sum, bet) => sum + (bet.result === 'win' ? bet.payout : 0), 0);
+            
+            return (totalWon - totalWagered).toFixed(2);
+        }
+    }
+}
+</script>
+{% endblock %}

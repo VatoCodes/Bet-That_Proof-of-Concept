@@ -1,0 +1,33 @@
+team_name,pass_tds_allowed,games_played,tds_per_game
+Houston Texans,4.0,6.0,0.67
+Los Angeles Chargers,7.0,7.0,1.0
+Denver Broncos,7.0,7.0,1.0
+Philadelphia Eagles,7.0,7.0,1.0
+Kansas City Chiefs,7.0,7.0,1.0
+Los Angeles Rams,8.0,7.0,1.14
+Arizona Cardinals,8.0,7.0,1.14
+Atlanta Falcons,7.0,6.0,1.17
+Buffalo Bills,7.0,6.0,1.17
+New York Giants,9.0,7.0,1.29
+Tennessee Titans,9.0,7.0,1.29
+Minnesota Vikings,8.0,6.0,1.33
+New England Patriots,10.0,7.0,1.43
+Carolina Panthers,10.0,7.0,1.43
+Tampa Bay Buccaneers,11.0,7.0,1.57
+San Francisco 49ers,11.0,7.0,1.57
+Miami Dolphins,11.0,7.0,1.57
+Seattle Seahawks,11.0,7.0,1.57
+Las Vegas Raiders,11.0,7.0,1.57
+Green Bay Packers,10.0,6.0,1.67
+Pittsburgh Steelers,10.0,6.0,1.67
+Cleveland Browns,12.0,7.0,1.71
+Washington Commanders,12.0,7.0,1.71
+New York Jets,13.0,7.0,1.86
+Indianapolis Colts,13.0,7.0,1.86
+New Orleans Saints,14.0,7.0,2.0
+Detroit Lions,14.0,7.0,2.0
+Jacksonville Jaguars,15.0,7.0,2.14
+Dallas Cowboys,16.0,7.0,2.29
+Baltimore Ravens,14.0,6.0,2.33
+Cincinnati Bengals,17.0,7.0,2.43
+Chicago Bears,15.0,6.0,2.5

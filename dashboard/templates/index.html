@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div x-data="dashboardData()" x-init="init()">
+    <!-- Header Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Edge Opportunities</div>
+            <div class="text-3xl font-bold text-blue-600" x-text="stats.edge_count"></div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Weak Defenses</div>
+            <div class="text-3xl font-bold text-green-600" x-text="stats.weak_defense_count"></div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Avg Edge</div>
+            <div class="text-3xl font-bold text-purple-600" x-text="stats.avg_edge + '%'"></div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Expected Value</div>
+            <div class="text-3xl font-bold text-orange-600" x-text="'$' + stats.expected_value"></div>
+        </div>
+    </div>
+    
+    <!-- Edge Opportunities Table -->
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-bold">🟢 Edge Opportunities</h2>
+        </div>
+        <div class="p-6">
+            <div x-show="edges.length === 0" class="text-center text-gray-500 py-8">
+                <div class="text-4xl mb-4">🔍</div>
+                <p>No edge opportunities found for current criteria</p>
+                <p class="text-sm mt-2">Try adjusting the minimum edge threshold or check different weeks</p>
+            </div>
+            <div x-show="edges.length > 0">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-2">QB</th>
+                            <th class="text-left py-2">Opponent</th>
+                            <th class="text-left py-2">True Prob</th>
+                            <th class="text-left py-2">Implied</th>
+                            <th class="text-left py-2">Edge</th>
+                            <th class="text-left py-2">Tier</th>
+                            <th class="text-left py-2">Bet Size</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="(edge, index) in edges" :key="index">
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="py-3" x-text="edge.qb_name"></td>
+                                <td class="py-3" x-text="edge.opponent"></td>
+                                <td class="py-3" x-text="(edge.true_probability * 100).toFixed(1) + '%'"></td>
+                                <td class="py-3" x-text="(edge.implied_probability * 100).toFixed(1) + '%'"></td>
+                                <td class="py-3">
+                                    <span class="font-bold" 
+                                          :class="edge.edge_percentage > 15 ? 'text-green-600' : 
+                                                  edge.edge_percentage > 10 ? 'text-yellow-600' : 
+                                                  'text-blue-600'"
+                                          x-text="'+' + edge.edge_percentage.toFixed(1) + '%'"></span>
+                                </td>
+                                <td class="py-3">
+                                    <span class="px-2 py-1 rounded text-xs"
+                                          :class="edge.bet_recommendation.tier === 'STRONG EDGE' ? 'bg-green-100 text-green-800' :
+                                                  edge.bet_recommendation.tier === 'GOOD EDGE' ? 'bg-yellow-100 text-yellow-800' :
+                                                  edge.bet_recommendation.tier === 'SMALL EDGE' ? 'bg-blue-100 text-blue-800' :
+                                                  'bg-gray-100 text-gray-800'"
+                                          x-text="edge.bet_recommendation.tier"></span>
+                                </td>
+                                <td class="py-3" x-text="'$' + edge.bet_recommendation.recommended_bet.toFixed(0)"></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Weak Defenses Chart -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-bold">📊 Weak Defenses</h2>
+        </div>
+        <div class="p-6">
+            <div x-show="weakDefenses.length === 0" class="text-center text-gray-500 py-8">
+                <div class="text-4xl mb-4">📈</div>
+                <p>No weak defenses found for current threshold</p>
+                <p class="text-sm mt-2">Try lowering the threshold or check different weeks</p>
+            </div>
+            <div x-show="weakDefenses.length > 0">
+                <canvas id="weakDefensesChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function dashboardData() {
+    return {
+        stats: {
+            edge_count: 0,
+            weak_defense_count: 0,
+            avg_edge: 0,
+            expected_value: 0
+        },
+        edges: [],
+        weakDefenses: [],
+        
+        async init() {
+            await this.checkDataStatus();
+            await this.loadEdges();
+            await this.loadWeakDefenses();
+            this.updateStats();
+            this.renderCharts();
+        },
+
+        async checkDataStatus() {
+            try {
+                const response = await fetch('/api/data-status');
+                const status = await response.json();
+
+                if (status.status === 'critical') {
+                    this.showBanner(status.issues.join('. '), 'error');
+                } else if (status.warnings && status.warnings.length > 0) {
+                    this.showBanner(status.warnings.join('. '), 'warning');
+                }
+            } catch (error) {
+                console.error('Error checking data status:', error);
+            }
+        },
+
+        showBanner(message, type) {
+            const banner = document.getElementById('dataStatusBanner');
+            if (banner && banner.__x) {
+                banner.__x.$data.message = message;
+                banner.__x.$data.type = type;
+                banner.__x.$data.show = true;
+            }
+        },
+        
+        async loadEdges() {
+            try {
+                const response = await fetch('/api/edges?min_edge=0.05');
+                this.edges = await response.json();
+            } catch (error) {
+                console.error('Error loading edges:', error);
+                this.edges = [];
+            }
+        },
+        
+        async loadWeakDefenses() {
+            try {
+                const response = await fetch('/api/weak-defenses?threshold=1.7');
+                this.weakDefenses = await response.json();
+            } catch (error) {
+                console.error('Error loading weak defenses:', error);
+                this.weakDefenses = [];
+            }
+        },
+        
+        updateStats() {
+            this.stats.edge_count = this.edges.length;
+            this.stats.weak_defense_count = this.weakDefenses.length;
+            
+            if (this.edges.length > 0) {
+                const totalEdge = this.edges.reduce((sum, e) => sum + e.edge_percentage, 0);
+                this.stats.avg_edge = (totalEdge / this.edges.length).toFixed(1);
+                
+                const totalEV = this.edges.reduce((sum, e) => sum + (e.bet_recommendation.recommended_bet * e.edge_percentage / 100), 0);
+                this.stats.expected_value = totalEV.toFixed(0);
+            }
+        },
+        
+        renderCharts() {
+            if (this.weakDefenses.length === 0) return;
+            
+            const ctx = document.getElementById('weakDefensesChart');
+            if (!ctx) return;
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: this.weakDefenses.map(d => d.team_name),
+                    datasets: [{
+                        label: 'TDs Allowed Per Game',
+                        data: this.weakDefenses.map(d => d.tds_per_game),
+                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    }
+}
+</script>
+{% endblock %}

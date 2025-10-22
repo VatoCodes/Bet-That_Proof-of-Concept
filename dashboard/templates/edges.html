@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div x-data="edgesData()" x-init="init()">
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="p-6 border-b">
+            <h2 class="text-xl font-bold">🔍 Edge Detection Filters</h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Week</label>
+                    <select x-model="filters.week" @change="loadEdges()" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="7">Week 7</option>
+                        <option value="8">Week 8</option>
+                        <option value="9">Week 9</option>
+                        <option value="10">Week 10</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Model</label>
+                    <select x-model="filters.model" @change="loadEdges()" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="v1">Simple Model (v1)</option>
+                        <option value="v2">Advanced Model (v2)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Min Edge (%)</label>
+                    <input type="number" x-model="filters.min_edge" @change="loadEdges()" 
+                           step="0.01" min="0" max="50" 
+                           class="w-full border border-gray-300 rounded-md px-3 py-2">
+                </div>
+                <div class="flex items-end">
+                    <button @click="exportEdges()" 
+                            class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        📊 Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="p-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold">💰 Edge Opportunities</h2>
+                <div class="text-sm text-gray-600">
+                    <span x-text="edges.length"></span> opportunities found
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edge Opportunities Table -->
+    <div class="bg-white rounded-lg shadow mb-8">
+        <div class="p-6">
+            <div x-show="loading" class="text-center py-8">
+                <div class="text-2xl mb-4">⏳</div>
+                <p>Loading edge opportunities...</p>
+            </div>
+            
+            <div x-show="!loading && edges.length === 0" class="text-center text-gray-500 py-8">
+                <div class="text-4xl mb-4">🔍</div>
+                <p>No edge opportunities found</p>
+                <p class="text-sm mt-2">Try adjusting filters or check different weeks</p>
+            </div>
+            
+            <div x-show="!loading && edges.length > 0">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left py-2">QB</th>
+                                <th class="text-left py-2">Team</th>
+                                <th class="text-left py-2">Opponent</th>
+                                <th class="text-left py-2">True Prob</th>
+                                <th class="text-left py-2">Implied</th>
+                                <th class="text-left py-2">Edge</th>
+                                <th class="text-left py-2">Tier</th>
+                                <th class="text-left py-2">Bet Size</th>
+                                <th class="text-left py-2">Kelly %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(edge, index) in edges" :key="index">
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-3 font-medium" x-text="edge.qb_name"></td>
+                                    <td class="py-3" x-text="edge.qb_team || 'N/A'"></td>
+                                    <td class="py-3" x-text="edge.opponent"></td>
+                                    <td class="py-3" x-text="(edge.true_probability * 100).toFixed(1) + '%'"></td>
+                                    <td class="py-3" x-text="(edge.implied_probability * 100).toFixed(1) + '%'"></td>
+                                    <td class="py-3">
+                                        <span class="font-bold" 
+                                              :class="edge.edge_percentage > 15 ? 'text-green-600' : 
+                                                      edge.edge_percentage > 10 ? 'text-yellow-600' : 
+                                                      'text-blue-600'"
+                                              x-text="'+' + edge.edge_percentage.toFixed(1) + '%'"></span>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="px-2 py-1 rounded text-xs font-medium"
+                                              :class="edge.bet_recommendation.tier === 'STRONG EDGE' ? 'bg-green-100 text-green-800' :
+                                                      edge.bet_recommendation.tier === 'GOOD EDGE' ? 'bg-yellow-100 text-yellow-800' :
+                                                      edge.bet_recommendation.tier === 'SMALL EDGE' ? 'bg-blue-100 text-blue-800' :
+                                                      'bg-gray-100 text-gray-800'"
+                                              x-text="edge.bet_recommendation.tier"></span>
+                                    </td>
+                                    <td class="py-3" x-text="'$' + edge.bet_recommendation.recommended_bet.toFixed(0)"></td>
+                                    <td class="py-3 text-sm text-gray-600" x-text="edge.bet_recommendation.bankroll_percentage.toFixed(1) + '%'"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div x-show="!loading && edges.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Total Opportunities</div>
+            <div class="text-2xl font-bold text-blue-600" x-text="edges.length"></div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Average Edge</div>
+            <div class="text-2xl font-bold text-purple-600" x-text="avgEdge + '%'"></div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-gray-500 text-sm">Expected Value</div>
+            <div class="text-2xl font-bold text-green-600" x-text="'$' + expectedValue"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+function edgesData() {
+    return {
+        edges: [],
+        loading: false,
+        filters: {
+            week: {{ current_week }},
+            model: 'v1',
+            min_edge: 5
+        },
+        
+        async init() {
+            await this.loadEdges();
+        },
+        
+        async loadEdges() {
+            this.loading = true;
+            try {
+                const params = new URLSearchParams({
+                    week: this.filters.week,
+                    model: this.filters.model,
+                    min_edge: this.filters.min_edge / 100 // Convert percentage to decimal
+                });
+                
+                const response = await fetch(`/api/edges?${params}`);
+                this.edges = await response.json();
+            } catch (error) {
+                console.error('Error loading edges:', error);
+                this.edges = [];
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        exportEdges() {
+            if (this.edges.length === 0) {
+                alert('No edges to export');
+                return;
+            }
+            
+            const csv = this.generateCSV();
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `edges_week${this.filters.week}_${this.filters.model}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        },
+        
+        generateCSV() {
+            const headers = ['QB', 'Team', 'Opponent', 'True Prob (%)', 'Implied Prob (%)', 'Edge (%)', 'Tier', 'Bet Size ($)', 'Kelly (%)'];
+            const rows = this.edges.map(edge => [
+                edge.qb_name,
+                edge.qb_team || 'N/A',
+                edge.opponent,
+                (edge.true_probability * 100).toFixed(1),
+                (edge.implied_probability * 100).toFixed(1),
+                edge.edge_percentage.toFixed(1),
+                edge.bet_recommendation.tier,
+                edge.bet_recommendation.recommended_bet.toFixed(0),
+                edge.bet_recommendation.bankroll_percentage.toFixed(1)
+            ]);
+            
+            return [headers, ...rows].map(row => row.join(',')).join('\n');
+        },
+        
+        get avgEdge() {
+            if (this.edges.length === 0) return '0.0';
+            const total = this.edges.reduce((sum, edge) => sum + edge.edge_percentage, 0);
+            return (total / this.edges.length).toFixed(1);
+        },
+        
+        get expectedValue() {
+            if (this.edges.length === 0) return '0';
+            const totalEV = this.edges.reduce((sum, edge) => sum + (edge.bet_recommendation.recommended_bet * edge.edge_percentage / 100), 0);
+            return totalEV.toFixed(0);
+        }
+    }
+}
+</script>
+{% endblock %}
