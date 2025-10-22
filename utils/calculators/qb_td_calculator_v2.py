@@ -85,6 +85,15 @@ class QBTDCalculatorV2:
                     # Still include the edge but mark it as v1-only
                     edge['strategy'] = 'QB TD 0.5+ (v2 - limited data)'
                     edge['model_version'] = 'v2_fallback'
+                    # Store the original v1 edge for comparison
+                    edge['v1_edge_percentage'] = edge['edge_percentage']
+                    # Initialize v2_metrics as empty since we don't have enhanced data
+                    edge['v2_metrics'] = {
+                        'red_zone_td_rate': None,
+                        'opp_defense_rank': 'N/A',
+                        'opp_pass_tds_allowed': 'N/A',
+                        'v1_edge_pct': round(edge['edge_percentage'], 1)
+                    }
                     edges.append(edge)
                     continue
 

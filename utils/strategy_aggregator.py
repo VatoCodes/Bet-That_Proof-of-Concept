@@ -182,7 +182,8 @@ class StrategyAggregator:
         try:
             # Use the base EdgeCalculator directly with v1 model
             from utils.edge_calculator import EdgeCalculator
-            v1_calc = EdgeCalculator(model_version="v1", db_path=self.db_path)
+            from pathlib import Path
+            v1_calc = EdgeCalculator(model_version="v1", db_path=Path(self.db_path))
 
             # Call v1 calculator
             edges = v1_calc.find_edges_for_week(week, threshold=0.0)  # Get all, we'll filter by min_edge below
