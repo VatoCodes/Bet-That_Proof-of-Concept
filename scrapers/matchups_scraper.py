@@ -23,6 +23,7 @@ from config import (
     DATA_DIR,
     MATCHUPS_FILE_TEMPLATE
 )
+from utils.week_manager import WeekManager
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class MatchupsScraper:
         """Initialize the matchups scraper"""
         self.url = ESPN_SCHEDULE_URL
         self.headers = {"User-Agent": USER_AGENT}
+        self.week_manager = WeekManager()
 
     def scrape(self, week: Optional[int] = None) -> Optional[pd.DataFrame]:
         """
@@ -132,13 +134,24 @@ class MatchupsScraper:
                     if not date_elem:
                         date_elem = game.find('div', class_='ScoreCell__GameDate')
 
-                    game_date = date_elem.get_text(strip=True) if date_elem else datetime.now().strftime('%Y-%m-%d')
+                    game_date_str = date_elem.get_text(strip=True) if date_elem else datetime.now().strftime('%Y-%m-%d')
+
+                    # Calculate week from game date instead of trusting parameter
+                    try:
+                        # Parse the date string to datetime
+                        game_date = datetime.strptime(game_date_str, '%Y-%m-%d')
+                        calculated_week = self.week_manager.calculate_week_from_game_date(game_date)
+                        logger.debug(f"Calculated week {calculated_week} from game date {game_date_str}")
+                    except Exception as e:
+                        # Fall back to provided week if date parsing fails
+                        logger.warning(f"Could not parse game date '{game_date_str}', using provided week {week}: {e}")
+                        calculated_week = week
 
                     matchups.append({
-                        'week': week,
+                        'week': calculated_week,
                         'home_team': self._clean_team_name(home_team),
                         'away_team': self._clean_team_name(away_team),
-                        'game_date': game_date
+                        'game_date': game_date_str
                     })
             except Exception as e:
                 logger.debug(f"Error parsing game: {e}")
@@ -171,11 +184,15 @@ class MatchupsScraper:
         # Group teams into pairs (away vs home)
         for i in range(0, len(teams_in_games) - 1, 2):
             if i + 1 < len(teams_in_games):
+                # Use current date to calculate week
+                current_date = datetime.now()
+                calculated_week = self.week_manager.calculate_week_from_game_date(current_date)
+
                 matchups.append({
-                    'week': week,
+                    'week': calculated_week,
                     'home_team': self._clean_team_name(teams_in_games[i+1]),
                     'away_team': self._clean_team_name(teams_in_games[i]),
-                    'game_date': datetime.now().strftime('%Y-%m-%d')
+                    'game_date': current_date.strftime('%Y-%m-%d')
                 })
 
         return matchups
@@ -279,8 +296,13 @@ def main():
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
 
-    # Get week from command line or default to current week
-    week = int(sys.argv[1]) if len(sys.argv) > 1 else 7
+    # Get week from command line or default to current week from WeekManager
+    if len(sys.argv) > 1:
+        week = int(sys.argv[1])
+    else:
+        week_manager = WeekManager()
+        week = week_manager.get_current_week()
+        logger.info(f"Using current week from WeekManager: {week}")
 
     scraper = MatchupsScraper()
     result = scraper.run(week)

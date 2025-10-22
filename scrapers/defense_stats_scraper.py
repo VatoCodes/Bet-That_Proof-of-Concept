@@ -269,6 +269,7 @@ logger = logging.getLogger(__name__)
 def main():
     """Main function for testing"""
     import sys
+    from utils.week_manager import WeekManager
 
     # Configure logging
     logging.basicConfig(
@@ -276,8 +277,13 @@ def main():
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
 
-    # Get week from command line or default to 7
-    week = int(sys.argv[1]) if len(sys.argv) > 1 else 7
+    # Get week from command line or default to current week from WeekManager
+    if len(sys.argv) > 1:
+        week = int(sys.argv[1])
+    else:
+        week_manager = WeekManager()
+        week = week_manager.get_current_week()
+        logging.info(f"Using current week from WeekManager: {week}")
 
     scraper = DefenseStatsScraper()
     result = scraper.run(week)

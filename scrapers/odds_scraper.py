@@ -7,6 +7,7 @@ import time
 import sys
 from pathlib import Path
 from typing import Optional, List, Dict
+from datetime import datetime
 import requests
 import pandas as pd
 
@@ -29,6 +30,7 @@ from config import (
     PAID_TIER_MAX_REQUESTS
 )
 from utils.api_key_rotator import APIKeyRotator
+from utils.week_manager import WeekManager
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +50,7 @@ class OddsScraper:
             free_tier_limit=FREE_TIER_MAX_REQUESTS,
             paid_tier_limit=PAID_TIER_MAX_REQUESTS
         )
+        self.week_manager = WeekManager()
 
         free_count = len(ODDS_API_KEYS) - (1 if ODDS_API_KEY_PAID else 0)
         logger.info(f"Initialized with {len(ODDS_API_KEYS)} API keys ({free_count} free tier, {1 if ODDS_API_KEY_PAID else 0} paid tier)")
@@ -314,6 +317,17 @@ class OddsScraper:
         away_team = event_data.get('away_team', '')
         commence_time = event_data.get('commence_time', '')
 
+        # Calculate week from commence_time instead of using parameter
+        calculated_week = None
+        if commence_time:
+            try:
+                # Parse ISO 8601 datetime string
+                game_datetime = datetime.fromisoformat(commence_time.replace('Z', '+00:00'))
+                calculated_week = self.week_manager.calculate_week_from_game_date(game_datetime)
+                logger.debug(f"Calculated week {calculated_week} from commence_time {commence_time}")
+            except Exception as e:
+                logger.warning(f"Could not parse commence_time '{commence_time}': {e}")
+
         bookmakers = event_data.get('bookmakers', [])
 
         for bookmaker in bookmakers:
@@ -345,6 +359,8 @@ class OddsScraper:
                             player_props[qb_name]['home_team'] = home_team
                             player_props[qb_name]['away_team'] = away_team
                             player_props[qb_name]['game_time'] = commence_time
+                            if calculated_week is not None:
+                                player_props[qb_name]['week'] = calculated_week
 
                     props_list.extend(player_props.values())
 
@@ -528,8 +544,13 @@ def main():
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
 
-    # Get week from command line or default to 7
-    week = int(sys.argv[1]) if len(sys.argv) > 1 else 7
+    # Get week from command line or default to current week from WeekManager
+    if len(sys.argv) > 1:
+        week = int(sys.argv[1])
+    else:
+        week_manager = WeekManager()
+        week = week_manager.get_current_week()
+        logger.info(f"Using current week from WeekManager: {week}")
 
     try:
         scraper = OddsScraper()

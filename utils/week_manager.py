@@ -218,6 +218,27 @@ class WeekManager:
         # Cap at final week
         return min(week, self.REGULAR_SEASON_WEEKS)
 
+    def calculate_week_from_game_date(self, game_date: datetime) -> int:
+        """
+        Calculate NFL week from an arbitrary game date
+
+        Args:
+            game_date: The date/datetime of the game
+
+        Returns:
+            Week number (1-18)
+        """
+        # Before season starts
+        if game_date < self.SEASON_START:
+            return 1
+
+        # During season
+        days_since_start = (game_date - self.SEASON_START).days
+        week = (days_since_start // 7) + 1
+
+        # Cap at final week
+        return min(week, self.REGULAR_SEASON_WEEKS)
+
     def _get_week_dates(self, week: int) -> Tuple[datetime, datetime]:
         """
         Get start and end dates for a given week
