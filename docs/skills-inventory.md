@@ -10,9 +10,9 @@ This document provides detailed specifications for all Skills to be implemented 
 
 ## Priority 1: Core Skills (Addressing Remaining Issues)
 
-### 1. line-movement-tracker
+### 1. line_movement_tracker
 
-**Name:** `line-movement-tracker`  
+**Name:** `line_movement_tracker`  
 **Description:** Analyze NFL betting line movements between morning (9am) and afternoon (3pm) data scrapes. Detects sharp money, steam moves, reverse line movement, and closing line value opportunities. Use when analyzing odds changes, tracking line movement patterns, or identifying valuable betting signals from market movement.  
 **Pattern:** Prompt Chaining  
 **Token Budget:** ~6,100 tokens (4k instructions + 2k execution)  
@@ -46,9 +46,9 @@ This document provides detailed specifications for all Skills to be implemented 
 
 ---
 
-### 2. edge-alerter
+### 2. edge_alerter
 
-**Name:** `edge-alerter`  
+**Name:** `edge_alerter`  
 **Description:** Monitor betting edge opportunities and send proactive notifications via email, SMS, or dashboard alerts when STRONG or GOOD edges are detected. Use when setting up automated monitoring, configuring alert preferences, or troubleshooting notification delivery.  
 **Pattern:** Orchestrator-Workers  
 **Token Budget:** ~5,100 tokens (3.5k instructions + 1.5k execution)  
@@ -81,9 +81,9 @@ This document provides detailed specifications for all Skills to be implemented 
 
 ---
 
-### 3. dashboard-tester
+### 3. dashboard_tester
 
-**Name:** `dashboard-tester`  
+**Name:** `dashboard_tester`  
 **Description:** Automated browser testing for Bet-That Flask dashboard using Chrome DevTools MCP. Tests all pages (index, edges, stats, tracker), API endpoints, filters, export functionality, and responsive design. Use when validating dashboard changes, running regression tests, or debugging UI issues.  
 **Pattern:** Parallelization  
 **Token Budget:** ~12,100 tokens (8k instructions + 4k execution)  
@@ -116,9 +116,9 @@ This document provides detailed specifications for all Skills to be implemented 
 
 ## Priority 2: Enhancement Skills
 
-### 4. bet-edge-analyzer
+### 4. bet_edge_analyzer
 
-**Name:** `bet-edge-analyzer`  
+**Name:** `bet_edge_analyzer`  
 **Description:** AI-powered edge analysis with natural language queries and dashboard integration. Enhanced edge detection workflow with conversational interface for parameter refinement and recommendation generation. Use when analyzing betting opportunities, refining analysis parameters, or getting personalized recommendations.  
 **Pattern:** Evaluator-Optimizer  
 **Token Budget:** ~10,100 tokens (6k instructions + 4k execution)  
@@ -149,9 +149,9 @@ This document provides detailed specifications for all Skills to be implemented 
 
 ---
 
-### 5. data-validator
+### 5. data_validator
 
-**Name:** `data-validator`  
+**Name:** `data_validator`  
 **Description:** ML-powered anomaly detection and data quality insights beyond basic validation. Statistical analysis of data patterns, outlier detection, and automated quality reporting. Use when validating data quality, detecting anomalies, or ensuring data integrity.  
 **Pattern:** Prompt Chaining  
 **Token Budget:** ~7,100 tokens (4.5k instructions + 2.5k execution)  
@@ -184,33 +184,33 @@ This document provides detailed specifications for all Skills to be implemented 
 
 ## Priority 3: Future Skills (Later Implementation)
 
-### 6. api-error-handler
+### 6. api_error_handler
 
-**Name:** `api-error-handler`  
+**Name:** `api_error_handler`  
 **Description:** Intelligent API error recovery and user guidance for frontend resilience. Smart error categorization, automatic retry logic, and user-friendly error messages. Use when handling API failures, debugging frontend issues, or improving user experience during errors.  
 **Pattern:** Routing  
 **Token Budget:** ~4,000 tokens (3k instructions + 1k execution)  
 **Priority:** 3a (Future)  
 
-### 7. model-calibrator
+### 7. model_calibrator
 
-**Name:** `model-calibrator`  
+**Name:** `model_calibrator`  
 **Description:** Automated model calibration tracking and performance monitoring. Outcome tracking, accuracy measurement, and model improvement recommendations. Use when tracking model performance, calibrating predictions, or improving edge detection accuracy.  
 **Pattern:** Prompt Chaining  
 **Token Budget:** ~6,000 tokens (4k instructions + 2k execution)  
 **Priority:** 3b (Future)  
 
-### 8. qb-matchup-analyzer
+### 8. qb_matchup_analyzer
 
-**Name:** `qb-matchup-analyzer`  
+**Name:** `qb_matchup_analyzer`  
 **Description:** Deep QB vs defense matchup analysis with advanced statistical modeling. Historical performance analysis, weather impact, injury reports, and matchup-specific insights. Use when analyzing specific QB matchups, getting detailed insights, or preparing for games.  
 **Pattern:** Evaluator-Optimizer  
 **Token Budget:** ~8,000 tokens (5k instructions + 3k execution)  
 **Priority:** 3c (Future)  
 
-### 9. performance-monitor
+### 9. performance_monitor
 
-**Name:** `performance-monitor`  
+**Name:** `performance_monitor`  
 **Description:** Dashboard performance monitoring and optimization recommendations. Core Web Vitals tracking, performance bottleneck identification, and optimization suggestions. Use when monitoring dashboard performance, identifying issues, or optimizing user experience.  
 **Pattern:** Parallelization  
 **Token Budget:** ~5,000 tokens (3k instructions + 2k execution)  

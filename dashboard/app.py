@@ -14,6 +14,7 @@ from utils.edge_calculator import EdgeCalculator
 from utils.week_manager import WeekManager
 from utils.data_validator import DataValidator
 from config import get_current_week
+import importlib.util
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'nfl-edge-finder-secret-key-change-in-production'
@@ -142,6 +143,19 @@ def api_data_status():
     }
 
     return jsonify(status)
+
+@app.route('/api/edge/explain/<edge_id>')
+async def api_explain_edge(edge_id):
+    # Dynamically load orchestrator from .claude directory to avoid import issues
+    orchestrator_path = Path(__file__).parent.parent / '.claude' / 'skills_orchestrator.py'
+    spec = importlib.util.spec_from_file_location("skills_orchestrator", orchestrator_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    spec.loader.exec_module(module)
+    BetThatSkillsOrchestrator = getattr(module, 'BetThatSkillsOrchestrator')
+    orchestrator = BetThatSkillsOrchestrator()
+    result = await orchestrator.execute_skill("edge_explanation_service", "format_for_dashboard", edge_id=edge_id, style='simple')
+    return jsonify(result)
 
 def validate_data_on_startup():
     """Validate data before starting dashboard"""
