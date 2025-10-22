@@ -405,20 +405,22 @@
                                                           edge.edge_percentage > 10 ? 'text-yellow-600' :
                                                           'text-blue-600'"
                                                   x-text="'+' + edge.edge_percentage.toFixed(1) + '%'"></span>
-                                            <button @click="showTooltip = !showTooltip"
-                                                    @mouseenter="showTooltip = true"
+                                            <button @mouseenter="showTooltip = true"
                                                     @mouseleave="showTooltip = false"
-                                                    class="text-blue-500 hover:text-blue-700 cursor-help w-4 h-4 flex items-center justify-center rounded-full border border-blue-400 text-xs font-bold"
-                                                    title="Show calculation">
+                                                    class="text-blue-500 hover:text-blue-700 cursor-help w-6 h-6 flex items-center justify-center rounded-full border-2 border-blue-400 text-sm font-bold hover:bg-blue-50 transition-colors">
                                                 ?
                                             </button>
                                             <!-- Tooltip -->
-                                            <div x-show="showTooltip"
-                                                 x-cloak
-                                                 class="absolute z-50 w-96 bg-gray-900 text-white text-xs rounded-lg shadow-lg p-4"
-                                                 style="left: 0; top: 100%; margin-top: 0.25rem; pointer-events: auto;"
-                                                 @click.away="showTooltip = false"
-                                                 @click="showTooltip = false">
+                                            <template x-if="showTooltip">
+                                                <div class="fixed z-[9999] w-96 bg-gray-900 text-white text-xs rounded-lg shadow-2xl p-4"
+                                                     @mouseenter="showTooltip = true"
+                                                     @mouseleave="showTooltip = false"
+                                                     x-init="
+                                                        const button = $el.parentElement.querySelector('button');
+                                                        const rect = button.getBoundingClientRect();
+                                                        $el.style.top = (rect.bottom + 5) + 'px';
+                                                        $el.style.left = rect.left + 'px';
+                                                     ">
                                                 <div class="font-bold mb-2 text-sm border-b border-gray-700 pb-2" x-text="edge.qb_name + ' Calculation'"></div>
                                                 <div class="space-y-2 font-mono">
                                                     <div>
@@ -446,6 +448,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            </template>
                                         </div>
                                     </td>
                                     <td class="py-3">
