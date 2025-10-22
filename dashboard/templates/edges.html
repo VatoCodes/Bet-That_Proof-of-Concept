@@ -301,7 +301,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Week</label>
-                    <select x-model="filters.week" @change="loadEdges()" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                    <select x-model="filters.week" @change="changeWeek($event.target.value)" class="w-full border border-gray-300 rounded-md px-3 py-2">
                         <template x-for="week in availableWeeks" :key="week">
                             <option :value="week" x-text="'Week ' + week"></option>
                         </template>
@@ -330,6 +330,189 @@
         </div>
     </div>
 
+    <!-- Strategy Tabs -->
+    <div class="mb-6">
+        <!-- Tab Navigation -->
+        <div class="border-b border-gray-200">
+            <!-- Desktop: Horizontal tabs -->
+            <div class="hidden md:flex md:space-x-2">
+                <!-- All Strategies Tab -->
+                <button
+                    @click="selectStrategy('all')"
+                    :class="{
+                        'border-blue-500 text-blue-600': activeStrategy === 'all',
+                        'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeStrategy !== 'all'
+                    }"
+                    class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors"
+                >
+                    All Strategies
+                    <span
+                        :class="{
+                            'bg-blue-500 text-white': activeStrategy === 'all',
+                            'bg-gray-200 text-gray-700': activeStrategy !== 'all'
+                        }"
+                        class="ml-2 py-0.5 px-2.5 rounded-full text-xs font-semibold"
+                        x-text="edgeCounts.total"
+                    ></span>
+                </button>
+
+                <!-- First Half Total Tab -->
+                <button
+                    @click="selectStrategy('first_half')"
+                    :class="{
+                        'border-blue-500 text-blue-600': activeStrategy === 'first_half',
+                        'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeStrategy !== 'first_half'
+                    }"
+                    class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors"
+                >
+                    First Half Totals
+                    <span
+                        :class="{
+                            'bg-blue-500 text-white': activeStrategy === 'first_half',
+                            'bg-gray-200 text-gray-700': activeStrategy !== 'first_half'
+                        }"
+                        class="ml-2 py-0.5 px-2.5 rounded-full text-xs font-semibold"
+                        x-text="edgeCounts.first_half"
+                    ></span>
+                </button>
+
+                <!-- QB TD v2 Tab -->
+                <button
+                    @click="selectStrategy('qb_td_v2')"
+                    :class="{
+                        'border-blue-500 text-blue-600': activeStrategy === 'qb_td_v2',
+                        'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeStrategy !== 'qb_td_v2'
+                    }"
+                    class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors"
+                >
+                    QB TD 0.5+ (v2)
+                    <span
+                        :class="{
+                            'bg-blue-500 text-white': activeStrategy === 'qb_td_v2',
+                            'bg-gray-200 text-gray-700': activeStrategy !== 'qb_td_v2'
+                        }"
+                        class="ml-2 py-0.5 px-2.5 rounded-full text-xs font-semibold"
+                        x-text="edgeCounts.qb_td_v2"
+                    ></span>
+                </button>
+
+                <!-- Kicker Points Tab -->
+                <button
+                    @click="selectStrategy('kicker')"
+                    :class="{
+                        'border-blue-500 text-blue-600': activeStrategy === 'kicker',
+                        'border-transparent text-gray-400': activeStrategy !== 'kicker',
+                        'cursor-not-allowed opacity-50': edgeCounts.kicker === 0
+                    }"
+                    :disabled="edgeCounts.kicker === 0"
+                    class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors"
+                >
+                    Kicker Points
+                    <span
+                        class="ml-2 py-0.5 px-2.5 rounded-full text-xs font-semibold bg-gray-200 text-gray-500"
+                        x-text="edgeCounts.kicker"
+                    ></span>
+                </button>
+            </div>
+
+            <!-- Mobile: Stacked tabs -->
+            <div class="md:hidden space-y-2 py-2">
+                <button
+                    @click="selectStrategy('all')"
+                    :class="{
+                        'bg-blue-500 text-white': activeStrategy === 'all',
+                        'bg-white text-gray-700 border border-gray-300': activeStrategy !== 'all'
+                    }"
+                    class="w-full py-3 px-4 rounded-lg font-medium text-sm flex justify-between items-center"
+                >
+                    <span>All Strategies</span>
+                    <span
+                        :class="{
+                            'bg-blue-600 text-white': activeStrategy === 'all',
+                            'bg-gray-200 text-gray-700': activeStrategy !== 'all'
+                        }"
+                        class="py-1 px-3 rounded-full text-xs font-semibold"
+                        x-text="edgeCounts.total"
+                    ></span>
+                </button>
+
+                <button
+                    @click="selectStrategy('first_half')"
+                    :class="{
+                        'bg-blue-500 text-white': activeStrategy === 'first_half',
+                        'bg-white text-gray-700 border border-gray-300': activeStrategy !== 'first_half'
+                    }"
+                    class="w-full py-3 px-4 rounded-lg font-medium text-sm flex justify-between items-center"
+                >
+                    <span>First Half Totals</span>
+                    <span
+                        :class="{
+                            'bg-blue-600 text-white': activeStrategy === 'first_half',
+                            'bg-gray-200 text-gray-700': activeStrategy !== 'first_half'
+                        }"
+                        class="py-1 px-3 rounded-full text-xs font-semibold"
+                        x-text="edgeCounts.first_half"
+                    ></span>
+                </button>
+
+                <button
+                    @click="selectStrategy('qb_td_v2')"
+                    :class="{
+                        'bg-blue-500 text-white': activeStrategy === 'qb_td_v2',
+                        'bg-white text-gray-700 border border-gray-300': activeStrategy !== 'qb_td_v2'
+                    }"
+                    class="w-full py-3 px-4 rounded-lg font-medium text-sm flex justify-between items-center"
+                >
+                    <span>QB TD 0.5+ (v2)</span>
+                    <span
+                        :class="{
+                            'bg-blue-600 text-white': activeStrategy === 'qb_td_v2',
+                            'bg-gray-200 text-gray-700': activeStrategy !== 'qb_td_v2'
+                        }"
+                        class="py-1 px-3 rounded-full text-xs font-semibold"
+                        x-text="edgeCounts.qb_td_v2"
+                    ></span>
+                </button>
+
+                <button
+                    @click="selectStrategy('kicker')"
+                    :class="{
+                        'bg-blue-500 text-white': activeStrategy === 'kicker',
+                        'bg-white text-gray-400 border border-gray-200': activeStrategy !== 'kicker',
+                        'cursor-not-allowed opacity-50': edgeCounts.kicker === 0
+                    }"
+                    :disabled="edgeCounts.kicker === 0"
+                    class="w-full py-3 px-4 rounded-lg font-medium text-sm flex justify-between items-center"
+                >
+                    <span>Kicker Points</span>
+                    <span
+                        class="py-1 px-3 rounded-full text-xs font-semibold bg-gray-200 text-gray-500"
+                        x-text="edgeCounts.kicker"
+                    ></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Strategy Description (optional) -->
+        <div class="mt-4 p-4 bg-blue-50 rounded-lg" x-show="activeStrategy !== 'all'">
+            <template x-if="activeStrategy === 'first_half'">
+                <p class="text-sm text-gray-700">
+                    <strong>First Half Total Under:</strong> Targets games where both offenses rank bottom 8 AND both defenses rank top 12. Win rate target: 92%+
+                </p>
+            </template>
+            <template x-if="activeStrategy === 'qb_td_v2'">
+                <p class="text-sm text-gray-700">
+                    <strong>QB TD 0.5+ (Enhanced v2):</strong> Enhanced with red zone accuracy and defensive strength analysis. Win rate target: 95%
+                </p>
+            </template>
+            <template x-if="activeStrategy === 'kicker'">
+                <p class="text-sm text-yellow-700">
+                    <strong>Kicker Points Over:</strong> ⚠️ Data pending. Kicker stats are being processed.
+                </p>
+            </template>
+        </div>
+    </div>
+
     <!-- Results Summary -->
     <div class="bg-white rounded-lg shadow mb-8">
         <div class="p-6">
@@ -342,130 +525,124 @@
         </div>
     </div>
 
-    <!-- Edge Opportunities Table -->
+    <!-- Edge Opportunities Cards -->
     <div class="bg-white rounded-lg shadow mb-8">
         <div class="p-6">
-            <div x-show="loading" class="text-center py-8">
-                <div class="text-2xl mb-4">⏳</div>
-                <p>Loading edge opportunities...</p>
+            <!-- Loading State -->
+            <div x-show="loading" class="text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <p class="mt-4 text-gray-600">Loading edges...</p>
             </div>
-            
-            <div x-show="!loading && edges.length === 0" class="text-center text-gray-500 py-8">
-                <div class="text-4xl mb-4">🔍</div>
-                <p>No edge opportunities found</p>
-                <p class="text-sm mt-2">Try adjusting filters or check different weeks</p>
+
+            <!-- Empty State: No edges found -->
+            <div
+                x-show="!loading && edges.length === 0 && activeStrategy !== 'kicker'"
+                class="text-center py-12"
+            >
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-lg font-medium text-gray-900">No edges found</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    No qualifying edges for Week <span x-text="filters.week"></span>.
+                </p>
+                <p class="mt-1 text-xs text-gray-400">
+                    This is normal - some weeks have fewer matchups meeting the criteria.
+                </p>
             </div>
-            
-            <div x-show="!loading && edges.length > 0" style="position: relative;">
-                <div style="position: relative; overflow-x: auto;">
-                    <table class="w-full">
-                        <thead>
-                            <tr class="border-b">
-                                <th class="text-left py-2">QB</th>
-                                <th class="text-left py-2">Team</th>
-                                <th class="text-left py-2">Opponent</th>
-                                <th class="text-left py-2">Week</th>
-                                <th class="text-left py-2">Game Date</th>
-                                <th class="text-left py-2">Sportsbook</th>
-                                <th class="text-left py-2">True Prob</th>
-                                <th class="text-left py-2">Implied</th>
-                                <th class="text-left py-2">
-                                    <div class="flex items-center gap-2">
-                                        <span>Edge</span>
-                                        <button @click="showEdgeModal = true"
-                                                class="text-blue-600 hover:text-blue-800 text-xs font-normal underline"
-                                                title="Learn how edge is calculated">
-                                            Learn More
-                                        </button>
-                                    </div>
-                                </th>
-                                <th class="text-left py-2">Tier</th>
-                                <th class="text-left py-2">Bet Size</th>
-                                <th class="text-left py-2">Kelly %</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template x-for="(edge, index) in edges" :key="index">
-                                <tr class="border-b hover:bg-gray-50" :class="getWeekWarningClass(edge)" x-data="{ showTooltip: false }">
-                                    <td class="py-3 font-medium" x-text="edge.qb_name"></td>
-                                    <td class="py-3" x-text="edge.qb_team || 'N/A'"></td>
-                                    <td class="py-3" x-text="edge.opponent"></td>
-                                    <td class="py-3">
-                                        <span x-text="'Week ' + edge.week"></span>
-                                        <span x-show="isWeekMismatch(edge)" class="ml-1" title="Week may not match game date">⚠️</span>
-                                    </td>
-                                    <td class="py-3 text-sm" x-text="formatGameDate(edge.game_date)"></td>
-                                    <td class="py-3" x-text="edge.sportsbook || 'N/A'"></td>
-                                    <td class="py-3" x-text="(edge.true_probability * 100).toFixed(1) + '%'"></td>
-                                    <td class="py-3" x-text="(edge.implied_probability * 100).toFixed(1) + '%'"></td>
-                                    <td class="py-3 relative">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-bold"
-                                                  :class="edge.edge_percentage > 15 ? 'text-green-600' :
-                                                          edge.edge_percentage > 10 ? 'text-yellow-600' :
-                                                          'text-blue-600'"
-                                                  x-text="'+' + edge.edge_percentage.toFixed(1) + '%'"></span>
-                                            <button @mouseenter="showTooltip = true"
-                                                    @mouseleave="showTooltip = false"
-                                                    class="text-blue-500 hover:text-blue-700 cursor-help w-6 h-6 flex items-center justify-center rounded-full border-2 border-blue-400 text-sm font-bold hover:bg-blue-50 transition-colors">
-                                                ?
-                                            </button>
-                                            <!-- Tooltip -->
-                                            <template x-if="showTooltip">
-                                                <div class="fixed z-[9999] w-96 bg-gray-900 text-white text-xs rounded-lg shadow-2xl p-4"
-                                                     @mouseenter="showTooltip = true"
-                                                     @mouseleave="showTooltip = false"
-                                                     x-init="
-                                                        const button = $el.parentElement.querySelector('button');
-                                                        const rect = button.getBoundingClientRect();
-                                                        $el.style.top = (rect.bottom + 5) + 'px';
-                                                        $el.style.left = rect.left + 'px';
-                                                     ">
-                                                <div class="font-bold mb-2 text-sm border-b border-gray-700 pb-2" x-text="edge.qb_name + ' Calculation'"></div>
-                                                <div class="space-y-2 font-mono">
-                                                    <div>
-                                                        <span class="text-blue-300">Step 1:</span> QB Rate<br>
-                                                        <span class="text-gray-300 ml-2" x-text="'qb_td_per_game = ' + edge.qb_td_per_game.toFixed(2)"></span>
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-red-300">Step 2:</span> Defense Rate<br>
-                                                        <span class="text-gray-300 ml-2" x-text="'defense_tds_per_game = ' + edge.defense_tds_per_game.toFixed(2)"></span>
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-purple-300">Step 3:</span> Weighted Base<br>
-                                                        <span class="text-gray-300 ml-2" x-text="'(' + edge.qb_td_per_game.toFixed(2) + ' × 0.6) + (' + edge.defense_tds_per_game.toFixed(2) + ' × 0.4)'"></span><br>
-                                                        <span class="text-gray-300 ml-2" x-text="'= ' + edge.base_probability.toFixed(3)"></span>
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-orange-300">Step 4:</span> Home Field<br>
-                                                        <span class="text-gray-300 ml-2" x-text="edge.base_probability.toFixed(3) + ' × ' + (edge.home_field_advantage ? '1.10 (home)' : '1.00 (away)')"></span><br>
-                                                        <span class="text-gray-300 ml-2" x-text="'= ' + edge.adjusted_probability.toFixed(3)"></span>
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-green-300">Step 5:</span> Final Probability<br>
-                                                        <span class="text-gray-300 ml-2" x-text="edge.adjusted_probability.toFixed(3) + ' × 0.6'"></span><br>
-                                                        <span class="text-yellow-300 ml-2 font-bold" x-text="'= ' + (edge.true_probability * 100).toFixed(1) + '%'"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            </template>
-                                        </div>
-                                    </td>
-                                    <td class="py-3">
-                                        <span class="px-2 py-1 rounded text-xs font-medium"
-                                              :class="edge.bet_recommendation.tier === 'STRONG EDGE' ? 'bg-green-100 text-green-800' :
-                                                      edge.bet_recommendation.tier === 'GOOD EDGE' ? 'bg-yellow-100 text-yellow-800' :
-                                                      edge.bet_recommendation.tier === 'SMALL EDGE' ? 'bg-blue-100 text-blue-800' :
-                                                      'bg-gray-100 text-gray-800'"
-                                              x-text="edge.bet_recommendation.tier"></span>
-                                    </td>
-                                    <td class="py-3" x-text="'$' + edge.bet_recommendation.recommended_bet.toFixed(0)"></td>
-                                    <td class="py-3 text-sm text-gray-600" x-text="edge.bet_recommendation.bankroll_percentage.toFixed(1) + '%'"></td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
-                </div>
+
+            <!-- Empty State: Kicker data pending -->
+            <div
+                x-show="!loading && activeStrategy === 'kicker'"
+                class="text-center py-12 bg-yellow-50 rounded-lg border border-yellow-200 mx-0"
+            >
+                <svg class="mx-auto h-12 w-12 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <h3 class="mt-2 text-lg font-semibold text-yellow-800">⚠️ Kicker Data Pending</h3>
+                <p class="mt-1 text-sm text-yellow-700">
+                    Kicker stats are currently being processed and will be available soon.
+                </p>
+                <p class="mt-2 text-xs text-yellow-600">
+                    Expected: 1-5 edges per week at 87%+ win rate
+                </p>
+            </div>
+
+            <!-- Edge Cards -->
+            <div x-show="!loading && edges.length > 0" class="space-y-4">
+                <template x-for="(edge, index) in edges" :key="index">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <!-- Card Header: Matchup and Strategy Badge -->
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
+                            <h3 class="text-lg font-bold text-gray-900" x-text="edge.matchup"></h3>
+
+                            <!-- Strategy Badge -->
+                            <span
+                                :class="{
+                                    'bg-purple-100 text-purple-800': edge.strategy.includes('First Half'),
+                                    'bg-blue-100 text-blue-800': edge.strategy.includes('QB TD'),
+                                    'bg-orange-100 text-orange-800': edge.strategy.includes('Kicker')
+                                }"
+                                class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap self-start sm:self-auto"
+                                x-text="edge.strategy"
+                            ></span>
+                        </div>
+
+                        <!-- Card Content -->
+                        <div class="space-y-2">
+                            <!-- Line -->
+                            <div class="text-sm text-gray-600">
+                                <span class="font-medium">Line:</span>
+                                <span x-text="edge.line"></span>
+                            </div>
+
+                            <!-- Recommendation -->
+                            <div class="text-lg font-bold text-blue-600" x-text="edge.recommendation"></div>
+
+                            <!-- Edge Percentage -->
+                            <div class="text-green-600 font-semibold">
+                                Edge:
+                                <span
+                                    :class="edge.edge_pct > 15 ? 'text-green-600' :
+                                            edge.edge_pct > 10 ? 'text-yellow-600' :
+                                            'text-blue-600'"
+                                    x-text="edge.edge_pct.toFixed(1) + '%'"
+                                ></span>
+                            </div>
+
+                            <!-- v1/v2 Comparison (QB TD v2 only) -->
+                            <div
+                                x-show="edge.v1_edge_pct !== undefined && edge.v1_edge_pct !== null"
+                                class="mb-2 p-3 bg-blue-50 rounded border border-blue-200"
+                            >
+                                <p class="text-sm text-gray-700">
+                                    <span class="font-medium">v1 Edge:</span>
+                                    <span x-text="edge.v1_edge_pct ? edge.v1_edge_pct.toFixed(1) + '%' : 'N/A'"></span>
+                                    →
+                                    <span class="font-medium">v2 Edge:</span>
+                                    <span x-text="edge.edge_pct.toFixed(1) + '%'"></span>
+                                    <span
+                                        class="text-green-600 font-semibold ml-1"
+                                        x-text="edge.v1_edge_pct ? '(+' + (edge.edge_pct - edge.v1_edge_pct).toFixed(1) + '% improvement)' : ''"
+                                    ></span>
+                                </p>
+
+                                <!-- Red Zone TD Rate -->
+                                <p
+                                    x-show="edge.red_zone_td_rate !== undefined && edge.red_zone_td_rate !== null"
+                                    class="text-xs text-gray-500 mt-2"
+                                >
+                                    Red Zone TD Rate: <span x-text="edge.red_zone_td_rate ? (edge.red_zone_td_rate * 100).toFixed(1) + '%' : 'N/A'"></span>
+                                </p>
+                            </div>
+
+                            <!-- Reasoning -->
+                            <div class="border-t border-gray-200 pt-2 mt-2">
+                                <p class="text-sm text-gray-600" x-text="edge.reasoning"></p>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
@@ -496,6 +673,13 @@ function edgesData() {
         showGlossaryModal: false,
         availableWeeks: [],
         currentWeek: {{ current_week }},
+        activeStrategy: 'all',  // NEW: Track selected strategy tab
+        edgeCounts: {           // NEW: Store badge counts per strategy
+            first_half: 0,
+            qb_td_v2: 0,
+            kicker: 0,
+            total: 0
+        },
         filters: {
             week: {{ current_week }},
             model: 'v1',
@@ -504,7 +688,10 @@ function edgesData() {
 
         async init() {
             await this.loadWeekRange();
-            await this.loadEdges();
+            await Promise.all([
+                this.loadEdges(),
+                this.loadEdgeCounts()
+            ]);
         },
 
         async loadWeekRange() {
@@ -519,16 +706,37 @@ function edgesData() {
                 this.availableWeeks = [this.currentWeek];
             }
         },
-        
+
+        // NEW: Load edge counts for strategy tabs
+        async loadEdgeCounts() {
+            try {
+                const response = await fetch(`/api/edges/counts?week=${this.filters.week}`);
+                const data = await response.json();
+                if (data.success) {
+                    this.edgeCounts = data.counts;
+                    console.log('Edge counts loaded:', this.edgeCounts);
+                }
+            } catch (error) {
+                console.error('Failed to load edge counts:', error);
+            }
+        },
+
+        // NEW: Switch strategy and reload edges
+        selectStrategy(strategy) {
+            this.activeStrategy = strategy;
+            this.loadEdges();
+        },
+
+        // MODIFIED: Include strategy parameter in API call
         async loadEdges() {
             this.loading = true;
             try {
                 const params = new URLSearchParams({
                     week: this.filters.week,
-                    model: this.filters.model,
+                    strategy: this.activeStrategy,  // NEW: Add strategy filter
                     min_edge: this.filters.min_edge / 100 // Convert percentage to decimal
                 });
-                
+
                 const response = await fetch(`/api/edges?${params}`);
                 this.edges = await response.json();
             } catch (error) {
@@ -537,6 +745,15 @@ function edgesData() {
             } finally {
                 this.loading = false;
             }
+        },
+
+        // MODIFIED: Reload both edges and counts when week changes
+        async changeWeek(week) {
+            this.filters.week = parseInt(week);
+            await Promise.all([
+                this.loadEdges(),
+                this.loadEdgeCounts()
+            ]);
         },
         
         exportEdges() {
