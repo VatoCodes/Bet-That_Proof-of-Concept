@@ -50,12 +50,12 @@ def api_edges():
 
     Query Parameters:
         week (int): NFL week number (1-18)
-        strategy (str): Filter by strategy - 'all', 'first_half', 'qb_td_v2', 'kicker' (default: 'all')
+        strategy (str): Filter by strategy - 'all', 'first_half', 'qb_td_v1', 'qb_td_v2', 'kicker' (default: 'all')
         min_edge (float): Minimum edge percentage (default: 5.0)
         season (int): NFL season year (default: 2024)
 
         # Legacy parameters (for backward compatibility):
-        model (str): 'v1' or 'v2' (deprecated, use strategy='qb_td_v2')
+        model (str): 'v1' or 'v2' (deprecated, use strategy='qb_td_v1' or 'qb_td_v2')
 
     Returns:
         JSON with edges, count, metadata
@@ -72,7 +72,9 @@ def api_edges():
         if model:
             logger.warning(f"Legacy 'model' parameter used: {model}. Use 'strategy' instead.")
             # Map old model param to new strategy param
-            if model == 'v2':
+            if model == 'v1':
+                strategy = 'qb_td_v1'
+            elif model == 'v2':
                 strategy = 'qb_td_v2'
 
         # Validate week
@@ -80,7 +82,7 @@ def api_edges():
             return jsonify({'error': 'Invalid week. Must be 1-18.'}), 400
 
         # Validate strategy
-        valid_strategies = ['all', 'first_half', 'qb_td_v2', 'kicker']
+        valid_strategies = ['all', 'first_half', 'qb_td_v1', 'qb_td_v2', 'kicker']
         if strategy not in valid_strategies:
             return jsonify({'error': f'Invalid strategy. Must be one of: {valid_strategies}'}), 400
 

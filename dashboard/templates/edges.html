@@ -298,7 +298,7 @@
             <h2 class="text-xl font-bold">🔍 Edge Detection Filters</h2>
         </div>
         <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Week</label>
                     <select x-model="filters.week" @change="changeWeek($event.target.value)" class="w-full border border-gray-300 rounded-md px-3 py-2">
@@ -308,20 +308,13 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Model</label>
-                    <select x-model="filters.model" @change="loadEdges()" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                        <option value="v1">Simple Model (v1)</option>
-                        <option value="v2">Advanced Model (v2)</option>
-                    </select>
-                </div>
-                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Min Edge (%)</label>
-                    <input type="number" x-model="filters.min_edge" @change="loadEdges()" 
-                           step="0.01" min="0" max="50" 
+                    <input type="number" x-model="filters.min_edge" @change="loadEdges()"
+                           step="0.01" min="0" max="50"
                            class="w-full border border-gray-300 rounded-md px-3 py-2">
                 </div>
                 <div class="flex items-end">
-                    <button @click="exportEdges()" 
+                    <button @click="exportEdges()"
                             class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
                         📊 Export CSV
                     </button>
@@ -373,6 +366,26 @@
                         }"
                         class="ml-2 py-0.5 px-2.5 rounded-full text-xs font-semibold"
                         x-text="edgeCounts.first_half"
+                    ></span>
+                </button>
+
+                <!-- QB TD v1 Tab -->
+                <button
+                    @click="selectStrategy('qb_td_v1')"
+                    :class="{
+                        'border-blue-500 text-blue-600': activeStrategy === 'qb_td_v1',
+                        'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeStrategy !== 'qb_td_v1'
+                    }"
+                    class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors"
+                >
+                    QB TD 0.5+ (v1)
+                    <span
+                        :class="{
+                            'bg-blue-500 text-white': activeStrategy === 'qb_td_v1',
+                            'bg-gray-200 text-gray-700': activeStrategy !== 'qb_td_v1'
+                        }"
+                        class="ml-2 py-0.5 px-2.5 rounded-full text-xs font-semibold"
+                        x-text="edgeCounts.qb_td_v1"
                     ></span>
                 </button>
 
@@ -456,6 +469,25 @@
                 </button>
 
                 <button
+                    @click="selectStrategy('qb_td_v1')"
+                    :class="{
+                        'bg-blue-500 text-white': activeStrategy === 'qb_td_v1',
+                        'bg-white text-gray-700 border border-gray-300': activeStrategy !== 'qb_td_v1'
+                    }"
+                    class="w-full py-3 px-4 rounded-lg font-medium text-sm flex justify-between items-center"
+                >
+                    <span>QB TD 0.5+ (v1)</span>
+                    <span
+                        :class="{
+                            'bg-blue-600 text-white': activeStrategy === 'qb_td_v1',
+                            'bg-gray-200 text-gray-700': activeStrategy !== 'qb_td_v1'
+                        }"
+                        class="py-1 px-3 rounded-full text-xs font-semibold"
+                        x-text="edgeCounts.qb_td_v1"
+                    ></span>
+                </button>
+
+                <button
                     @click="selectStrategy('qb_td_v2')"
                     :class="{
                         'bg-blue-500 text-white': activeStrategy === 'qb_td_v2',
@@ -500,9 +532,14 @@
                     <strong>First Half Total Under:</strong> Targets games where both offenses rank bottom 8 AND both defenses rank top 12. Win rate target: 92%+
                 </p>
             </template>
+            <template x-if="activeStrategy === 'qb_td_v1'">
+                <p class="text-sm text-gray-700">
+                    <strong>QB TD 0.5+ (Simple v1):</strong> Baseline model using 60% QB performance + 40% defense weakness. Win rate target: 90%. More edges (10-15/week) but lower confidence.
+                </p>
+            </template>
             <template x-if="activeStrategy === 'qb_td_v2'">
                 <p class="text-sm text-gray-700">
-                    <strong>QB TD 0.5+ (Enhanced v2):</strong> Enhanced with red zone accuracy and defensive strength analysis. Win rate target: 95%
+                    <strong>QB TD 0.5+ (Enhanced v2):</strong> Advanced model with red zone accuracy and defensive strength analysis. Win rate target: 95%+. More selective (5-10/week) with higher confidence.
                 </p>
             </template>
             <template x-if="activeStrategy === 'kicker'">
@@ -673,16 +710,16 @@ function edgesData() {
         showGlossaryModal: false,
         availableWeeks: [],
         currentWeek: {{ current_week }},
-        activeStrategy: 'all',  // NEW: Track selected strategy tab
-        edgeCounts: {           // NEW: Store badge counts per strategy
+        activeStrategy: 'all',  // Track selected strategy tab
+        edgeCounts: {           // Store badge counts per strategy
             first_half: 0,
+            qb_td_v1: 0,
             qb_td_v2: 0,
             kicker: 0,
             total: 0
         },
         filters: {
             week: {{ current_week }},
-            model: 'v1',
             min_edge: 5
         },
 
@@ -770,13 +807,13 @@ function edgesData() {
                 alert('No edges to export');
                 return;
             }
-            
+
             const csv = this.generateCSV();
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `edges_week${this.filters.week}_${this.filters.model}.csv`;
+            a.download = `edges_week${this.filters.week}_${this.activeStrategy}.csv`;
             a.click();
             window.URL.revokeObjectURL(url);
         },

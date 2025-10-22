@@ -64,7 +64,7 @@ class StrategyAggregator:
             week: NFL week number (1-18)
             season: NFL season year
             min_edge: Minimum edge percentage (default: 5.0)
-            strategy: Optional filter - "first_half", "qb_td_v2", or None for all
+            strategy: Optional filter - "first_half", "qb_td_v1", "qb_td_v2", or None for all
 
         Returns:
             List of edge dictionaries in standardized format
@@ -74,13 +74,16 @@ class StrategyAggregator:
         # Determine which strategies to run
         strategies_to_run = []
         if strategy is None or strategy == 'all':
-            strategies_to_run = ['first_half', 'qb_td_v2']
+            strategies_to_run = ['first_half', 'qb_td_v1', 'qb_td_v2']
         else:
             strategies_to_run = [strategy]
 
         # Run each strategy
         if 'first_half' in strategies_to_run:
             all_edges.extend(self._get_first_half_edges(week, season, min_edge))
+
+        if 'qb_td_v1' in strategies_to_run:
+            all_edges.extend(self._get_qb_td_v1_edges(week, season, min_edge))
 
         if 'qb_td_v2' in strategies_to_run:
             all_edges.extend(self._get_qb_td_v2_edges(week, season, min_edge))
@@ -105,13 +108,14 @@ class StrategyAggregator:
             season: NFL season year
 
         Returns:
-            Dict with strategy counts: {"first_half": 3, "qb_td_v2": 5, "total": 8}
+            Dict with strategy counts: {"first_half": 3, "qb_td_v1": 5, "qb_td_v2": 4, "total": 12}
         """
         # Get full edges (could optimize with count-only queries later)
         edges = self.get_all_edges(week, season, min_edge=0.0)  # Get all, regardless of edge
 
         counts = {
             "first_half": 0,
+            "qb_td_v1": 0,
             "qb_td_v2": 0,
             "kicker": 0,
             "total": 0
@@ -121,8 +125,10 @@ class StrategyAggregator:
             strategy = edge.get('strategy', '')
             if 'First Half' in strategy:
                 counts['first_half'] += 1
-            elif 'QB TD' in strategy:
+            elif 'Enhanced v2' in strategy or '(Enhanced v2)' in strategy or 'v2' in strategy.lower():
                 counts['qb_td_v2'] += 1
+            elif '(Simple v1)' in strategy or 'v1' in strategy.lower():
+                counts['qb_td_v1'] += 1
             elif 'Kicker' in strategy:
                 counts['kicker'] += 1
 
@@ -164,6 +170,63 @@ class StrategyAggregator:
 
         except Exception as e:
             logger.error(f"Error getting First Half Total edges: {e}")
+            return []
+
+    def _get_qb_td_v1_edges(
+        self,
+        week: int,
+        season: int,
+        min_edge: float
+    ) -> List[Dict[str, Any]]:
+        """Get edges from QB TD v1 Simple calculator."""
+        try:
+            # Use the base EdgeCalculator directly with v1 model
+            from utils.edge_calculator import EdgeCalculator
+            v1_calc = EdgeCalculator(model_version="v1", db_path=self.db_path)
+
+            # Call v1 calculator
+            edges = v1_calc.find_edges_for_week(week, threshold=0.0)  # Get all, we'll filter by min_edge below
+
+            # Standardize format
+            standardized = []
+            for edge in edges:
+                # Map calculator output to standard format
+                qb_name = edge.get('qb_name', 'Unknown')
+                opponent = edge.get('opponent', 'Unknown')
+                matchup = f"{qb_name} vs {opponent}"
+
+                # Build reasoning if not present
+                reasoning = edge.get('reasoning', '')
+                if not reasoning:
+                    true_prob = edge.get('true_probability', 0.0)
+                    implied_prob = edge.get('implied_probability', 0.0)
+                    reasoning = (
+                        f"{qb_name} has true probability of {true_prob:.1%} "
+                        f"vs market implied probability of {implied_prob:.1%} "
+                        f"({opponent} defense). "
+                        f"Edge: {edge.get('edge_percentage', 0.0):.1f}%"
+                    )
+
+                std_edge = {
+                    "matchup": matchup,
+                    "strategy": "QB TD 0.5+ (Simple v1)",
+                    "line": edge.get('line', 0.5),
+                    "recommendation": f"OVER {edge.get('line', 0.5)} TD",
+                    "edge_pct": edge.get('edge_percentage', 0.0),
+                    "confidence": edge.get('confidence', 'MEDIUM').upper(),
+                    "reasoning": reasoning,
+                    "opponent": opponent
+                }
+
+                # Only include if meets minimum edge
+                if std_edge['edge_pct'] >= min_edge:
+                    standardized.append(std_edge)
+
+            logger.info(f"QB TD v1: {len(standardized)} edges found (week {week})")
+            return standardized
+
+        except Exception as e:
+            logger.error(f"Error getting QB TD v1 edges: {e}")
             return []
 
     def _get_qb_td_v2_edges(
@@ -233,9 +296,9 @@ class StrategyAggregator:
         Get list of currently available strategies.
 
         Returns:
-            List of strategy identifiers: ["first_half", "qb_td_v2"]
+            List of strategy identifiers: ["first_half", "qb_td_v1", "qb_td_v2"]
         """
-        return ["first_half", "qb_td_v2"]
+        return ["first_half", "qb_td_v1", "qb_td_v2"]
         # Note: "kicker" will be added when kicker_stats data is ready
 
     def validate_week(self, week: int, season: int = 2024) -> bool:
