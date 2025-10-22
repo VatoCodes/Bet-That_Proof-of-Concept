@@ -103,6 +103,10 @@ class QBTDCalculatorV2:
                 # Get opponent defensive quality
                 opp_defense_quality = self._get_opponent_defense_quality(opponent, season)
 
+                # Store original v1 edge for comparison BEFORE updating it
+                if 'v1_edge_percentage' not in edge:
+                    edge['v1_edge_percentage'] = edge['edge_percentage']
+
                 # Adjust v1 edge percentage with new factors
                 adjusted_edge_pct = self._adjust_edge_with_v2_metrics(
                     base_edge_pct=edge['edge_percentage'],
@@ -131,10 +135,6 @@ class QBTDCalculatorV2:
                     opp_defense_quality=opp_defense_quality,
                     adjustment=adjusted_edge_pct - edge.get('v1_edge_percentage', edge['edge_percentage'])
                 )
-
-                # Store original v1 edge for comparison
-                if 'v1_edge_percentage' not in edge:
-                    edge['v1_edge_percentage'] = edge['edge_percentage']
 
                 # Append v2 reasoning to original reasoning
                 edge['reasoning'] = v2_reasoning

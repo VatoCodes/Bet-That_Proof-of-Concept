@@ -650,25 +650,101 @@
                                 <!-- Tooltip Icon -->
                                 <div class="relative group">
                                     <button class="text-gray-400 hover:text-gray-600 font-bold text-sm w-5 h-5 flex items-center justify-center rounded-full hover:bg-gray-100"
-                                            type="button"
-                                            title="Click for calculation details">
+                                            type="button">
                                         ?
                                     </button>
                                     <!-- Tooltip Content -->
-                                    <div class="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-80 bg-gray-900 text-white text-xs rounded-lg p-3 z-10 shadow-lg">
-                                        <div class="space-y-2">
-                                            <p class="font-bold">Edge Calculation</p>
-                                            <p>
-                                                <span class="text-blue-200">Edge %</span> =
-                                                (True Probability - Implied Probability) ÷ Implied Probability × 100
+                                    <div class="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-96 bg-gray-900 text-white text-xs rounded-lg p-4 z-10 shadow-lg">
+                                        <div class="space-y-3">
+                                            <!-- Title based on strategy -->
+                                            <p class="font-bold text-sm border-b border-gray-700 pb-2">
+                                                <span x-show="edge.strategy.includes('v1')">v1 Simple Calculation</span>
+                                                <span x-show="edge.strategy.includes('v2')">v2 Enhanced Calculation</span>
+                                                <span x-show="!edge.strategy.includes('v1') && !edge.strategy.includes('v2')">Edge Calculation</span>
                                             </p>
-                                            <p>
-                                                <span class="text-green-200">True Probability</span> = Your calculated likelihood of the event
+
+                                            <!-- Base Formula (v1 or generic) -->
+                                            <div>
+                                                <p class="font-semibold text-blue-300 mb-1">Base Formula:</p>
+                                                <p class="ml-2">
+                                                    <span class="text-blue-200">Edge %</span> =
+                                                    (True Prob - Implied Prob) ÷ Implied Prob × 100
+                                                </p>
+                                            </div>
+
+                                            <!-- v1 Specific Calculation (for QB TD edges) -->
+                                            <template x-if="edge.strategy.includes('QB TD')">
+                                                <div>
+                                                    <p class="font-semibold text-green-300 mb-1">
+                                                        <span x-show="edge.strategy.includes('v1')">v1 True Probability:</span>
+                                                        <span x-show="edge.strategy.includes('v2')">v1 Baseline:</span>
+                                                    </p>
+                                                    <p class="ml-2 text-gray-300">
+                                                        Base = (QB TD/game × 0.6) + (Def TDs allowed × 0.4)
+                                                    </p>
+                                                    <p class="ml-2 text-gray-300">
+                                                        Adjusted = Base × Home Field Factor
+                                                    </p>
+                                                    <p class="ml-2 text-gray-300">
+                                                        True Prob = Adjusted × 0.6 (clamped 5%-95%)
+                                                    </p>
+                                                </div>
+                                            </template>
+
+                                            <!-- v2 Enhancements (only for v2 edges) -->
+                                            <template x-if="edge.strategy.includes('v2') && edge.red_zone_td_rate">
+                                                <div class="border-t border-gray-700 pt-2">
+                                                    <p class="font-semibold text-purple-300 mb-1">v2 Enhancements:</p>
+                                                    <div class="ml-2 space-y-1">
+                                                        <p class="text-gray-300">
+                                                            <span class="text-yellow-200">Red Zone TD Rate:</span>
+                                                            <span x-text="(edge.red_zone_td_rate * 100).toFixed(1) + '%'"></span>
+                                                        </p>
+                                                        <p class="text-xs text-gray-400 ml-2">
+                                                            • >15%: +15% boost (excellent)
+                                                        </p>
+                                                        <p class="text-xs text-gray-400 ml-2">
+                                                            • 10-15%: +8% boost (good)
+                                                        </p>
+                                                        <p class="text-xs text-gray-400 ml-2">
+                                                            • <5%: -8% penalty (poor)
+                                                        </p>
+                                                        <p class="text-gray-300 mt-1">
+                                                            <span class="text-orange-200">Defense Quality:</span>
+                                                        </p>
+                                                        <p class="text-xs text-gray-400 ml-2">
+                                                            • Weak: +10% boost
+                                                        </p>
+                                                        <p class="text-xs text-gray-400 ml-2">
+                                                            • Strong: -12% penalty
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- v2 Result Comparison (for v2 edges with v1 baseline) -->
+                                            <template x-if="edge.v1_edge_pct !== undefined && edge.v1_edge_pct !== null && edge.strategy.includes('v2')">
+                                                <div class="border-t border-gray-700 pt-2">
+                                                    <p class="font-semibold text-green-300 mb-1">Result:</p>
+                                                    <p class="ml-2 text-gray-300">
+                                                        <span class="text-blue-200">v1 Edge:</span>
+                                                        <span x-text="edge.v1_edge_pct.toFixed(1) + '%'"></span>
+                                                    </p>
+                                                    <p class="ml-2 text-gray-300">
+                                                        <span class="text-green-200">v2 Edge:</span>
+                                                        <span x-text="edge.edge_pct.toFixed(1) + '%'"></span>
+                                                        <span
+                                                            class="ml-1"
+                                                            :class="edge.edge_pct - edge.v1_edge_pct >= 0 ? 'text-green-400' : 'text-red-400'"
+                                                            x-text="'(' + (edge.edge_pct - edge.v1_edge_pct >= 0 ? '+' : '') + (edge.edge_pct - edge.v1_edge_pct).toFixed(1) + '%)'">
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            </template>
+
+                                            <p class="text-gray-400 text-xs mt-2 border-t border-gray-700 pt-2">
+                                                Click the "📖" icon above for complete details
                                             </p>
-                                            <p>
-                                                <span class="text-yellow-200">Implied Probability</span> = Probability derived from sportsbook odds
-                                            </p>
-                                            <p class="text-gray-300 text-xs mt-2">Click the "📖" icon above for complete formula breakdown</p>
                                         </div>
                                         <!-- Triangle pointer -->
                                         <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full w-2 h-2 bg-gray-900"></div>
