@@ -118,14 +118,17 @@ class ProbabilityCalculator:
         
         # Convert score to probability
         base_probability = self._score_to_probability(composite_score)
-        
+
         # Apply contextual adjustments
         if matchup_context:
             if matchup_context.get('is_home', False):
                 base_probability *= 1.1
             if matchup_context.get('is_division_game', False):
                 base_probability *= 0.95
-        
+
+        # Re-clamp probability after adjustments to ensure it stays within [0.05, 0.95]
+        base_probability = min(0.95, max(0.05, base_probability))
+
         # Calculate confidence based on sample size
         games_played = qb_stats.get('games_played', 1)
         confidence = self._calculate_confidence(games_played)
@@ -412,12 +415,19 @@ class EdgeCalculator:
                     )
                     
                     # Add matchup info
+                    # Convert game_date to string for JSON serialization
+                    game_date = matchup['game_date']
+                    if hasattr(game_date, 'strftime'):
+                        game_date = game_date.strftime('%Y-%m-%d')
+                    elif game_date is not None:
+                        game_date = str(game_date)
+
                     edge_result.update({
                         'qb_name': matchup['home_qb'],
                         'qb_team': matchup['home_qb_team'],
                         'opponent': matchup['away_team'],
                         'sportsbook': matchup['prop_sportsbook'],
-                        'game_date': matchup['game_date']
+                        'game_date': game_date
                     })
                     
                     # Filter by threshold
