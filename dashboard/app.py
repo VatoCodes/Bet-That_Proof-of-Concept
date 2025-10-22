@@ -41,14 +41,36 @@ def api_edges():
     week = request.args.get('week', get_current_week(), type=int)
     min_edge = request.args.get('min_edge', 0.05, type=float)
     model = request.args.get('model', 'v1', type=str)
-    
+
     # Initialize edge calculator
     calculator = EdgeCalculator(model_version=model)
-    
+
     # Get edges
     edges = calculator.find_edges_for_week(week=week, threshold=min_edge)
-    
+
+    # Add week number to each edge for display
+    for edge in edges:
+        edge['week'] = week
+
     return jsonify(edges)
+
+@app.route('/api/week-range')
+def api_week_range():
+    """Get available week range for filters"""
+    current_week = get_current_week()
+
+    # Provide current week and next 3 weeks
+    # Filter out weeks beyond the regular season (18 weeks)
+    weeks = []
+    for i in range(4):
+        week_num = current_week + i
+        if week_num <= 18:
+            weeks.append(week_num)
+
+    return jsonify({
+        'current_week': current_week,
+        'available_weeks': weeks
+    })
 
 @app.route('/api/weak-defenses')
 def api_weak_defenses():
