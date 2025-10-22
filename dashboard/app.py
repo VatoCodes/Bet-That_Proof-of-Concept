@@ -67,8 +67,20 @@ def api_stats_summary():
     db.connect()
     stats = db.get_database_stats()
     db.close()
-    
-    return jsonify(stats)
+
+    # Transform nested structure to flat structure expected by frontend
+    flat_stats = {
+        'defense_stats': stats['tables'].get('defense_stats', {}).get('row_count', 0),
+        'qb_stats': stats['tables'].get('qb_stats', {}).get('row_count', 0),
+        'matchups': stats['tables'].get('matchups', {}).get('row_count', 0),
+        'odds_spreads': stats['tables'].get('odds_spreads', {}).get('row_count', 0),
+        'odds_totals': stats['tables'].get('odds_totals', {}).get('row_count', 0),
+        'qb_props': stats['tables'].get('qb_props', {}).get('row_count', 0),
+        'database_size_mb': stats.get('database_size_mb', 0),
+        'database_path': stats.get('database_path', '')
+    }
+
+    return jsonify(flat_stats)
 
 @app.route('/edges')
 def edges_page():
