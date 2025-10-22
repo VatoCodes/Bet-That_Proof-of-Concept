@@ -636,41 +636,96 @@
                             <!-- Recommendation -->
                             <div class="text-lg font-bold text-blue-600" x-text="edge.recommendation"></div>
 
-                            <!-- Edge Percentage -->
-                            <div class="text-green-600 font-semibold">
-                                Edge:
-                                <span
-                                    :class="edge.edge_pct > 15 ? 'text-green-600' :
-                                            edge.edge_pct > 10 ? 'text-yellow-600' :
-                                            'text-blue-600'"
-                                    x-text="edge.edge_pct.toFixed(1) + '%'"
-                                ></span>
+                            <!-- Edge Percentage with Tooltip -->
+                            <div class="flex items-center gap-2">
+                                <div class="text-green-600 font-semibold">
+                                    Edge:
+                                    <span
+                                        :class="edge.edge_pct > 15 ? 'text-green-600' :
+                                                edge.edge_pct > 10 ? 'text-yellow-600' :
+                                                'text-blue-600'"
+                                        x-text="edge.edge_pct.toFixed(1) + '%'"
+                                    ></span>
+                                </div>
+                                <!-- Tooltip Icon -->
+                                <div class="relative group">
+                                    <button class="text-gray-400 hover:text-gray-600 font-bold text-sm w-5 h-5 flex items-center justify-center rounded-full hover:bg-gray-100"
+                                            type="button"
+                                            title="Click for calculation details">
+                                        ?
+                                    </button>
+                                    <!-- Tooltip Content -->
+                                    <div class="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-80 bg-gray-900 text-white text-xs rounded-lg p-3 z-10 shadow-lg">
+                                        <div class="space-y-2">
+                                            <p class="font-bold">Edge Calculation</p>
+                                            <p>
+                                                <span class="text-blue-200">Edge %</span> =
+                                                (True Probability - Implied Probability) ÷ Implied Probability × 100
+                                            </p>
+                                            <p>
+                                                <span class="text-green-200">True Probability</span> = Your calculated likelihood of the event
+                                            </p>
+                                            <p>
+                                                <span class="text-yellow-200">Implied Probability</span> = Probability derived from sportsbook odds
+                                            </p>
+                                            <p class="text-gray-300 text-xs mt-2">Click the "📖" icon above for complete formula breakdown</p>
+                                        </div>
+                                        <!-- Triangle pointer -->
+                                        <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full w-2 h-2 bg-gray-900"></div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- v1/v2 Comparison (QB TD v2 only) -->
+                            <!-- v1/v2 Comparison (v2 edges show v1 baseline, v1 edges show v2 projection) -->
                             <div
-                                x-show="edge.v1_edge_pct !== undefined && edge.v1_edge_pct !== null"
+                                x-show="(edge.v1_edge_pct !== undefined && edge.v1_edge_pct !== null) || (edge.v2_edge_pct !== undefined && edge.v2_edge_pct !== null)"
                                 class="mb-2 p-3 bg-blue-50 rounded border border-blue-200"
                             >
-                                <p class="text-sm text-gray-700">
-                                    <span class="font-medium">v1 Edge:</span>
-                                    <span x-text="edge.v1_edge_pct ? edge.v1_edge_pct.toFixed(1) + '%' : 'N/A'"></span>
-                                    →
-                                    <span class="font-medium">v2 Edge:</span>
-                                    <span x-text="edge.edge_pct.toFixed(1) + '%'"></span>
-                                    <span
-                                        class="text-green-600 font-semibold ml-1"
-                                        x-text="edge.v1_edge_pct ? '(+' + (edge.edge_pct - edge.v1_edge_pct).toFixed(1) + '% improvement)' : ''"
-                                    ></span>
-                                </p>
+                                <!-- For v2 edges: Show v1 baseline -->
+                                <template x-if="edge.v1_edge_pct !== undefined && edge.v1_edge_pct !== null">
+                                    <div>
+                                        <p class="text-sm text-gray-700">
+                                            <span class="font-medium text-blue-700">v1 Baseline:</span>
+                                            <span x-text="edge.v1_edge_pct.toFixed(1) + '%'"></span>
+                                            →
+                                            <span class="font-medium text-green-700">v2 Enhanced:</span>
+                                            <span x-text="edge.edge_pct.toFixed(1) + '%'"></span>
+                                            <span
+                                                class="text-green-600 font-semibold ml-1"
+                                                x-text="'(' + (edge.edge_pct - edge.v1_edge_pct >= 0 ? '+' : '') + (edge.edge_pct - edge.v1_edge_pct).toFixed(1) + '%)'"
+                                            ></span>
+                                        </p>
+                                        <p
+                                            x-show="edge.red_zone_td_rate !== undefined && edge.red_zone_td_rate !== null"
+                                            class="text-xs text-gray-500 mt-2"
+                                        >
+                                            Red Zone TD Rate: <span x-text="edge.red_zone_td_rate ? (edge.red_zone_td_rate * 100).toFixed(1) + '%' : 'N/A'"></span>
+                                        </p>
+                                    </div>
+                                </template>
 
-                                <!-- Red Zone TD Rate -->
-                                <p
-                                    x-show="edge.red_zone_td_rate !== undefined && edge.red_zone_td_rate !== null"
-                                    class="text-xs text-gray-500 mt-2"
-                                >
-                                    Red Zone TD Rate: <span x-text="edge.red_zone_td_rate ? (edge.red_zone_td_rate * 100).toFixed(1) + '%' : 'N/A'"></span>
-                                </p>
+                                <!-- For v1 edges: Show v2 projection -->
+                                <template x-if="edge.v2_edge_pct !== undefined && edge.v2_edge_pct !== null && (edge.v1_edge_pct === undefined || edge.v1_edge_pct === null)">
+                                    <div>
+                                        <p class="text-sm text-gray-700">
+                                            <span class="font-medium text-blue-700">v1 Current:</span>
+                                            <span x-text="edge.edge_pct.toFixed(1) + '%'"></span>
+                                            →
+                                            <span class="font-medium text-green-700">v2 Projection:</span>
+                                            <span x-text="edge.v2_edge_pct.toFixed(1) + '%'"></span>
+                                            <span
+                                                class="text-green-600 font-semibold ml-1"
+                                                x-text="'(' + (edge.v2_edge_pct - edge.edge_pct >= 0 ? '+' : '') + (edge.v2_edge_pct - edge.edge_pct).toFixed(1) + '%)'"
+                                            ></span>
+                                        </p>
+                                        <p
+                                            x-show="edge.red_zone_td_rate !== undefined && edge.red_zone_td_rate !== null"
+                                            class="text-xs text-gray-500 mt-2"
+                                        >
+                                            Red Zone TD Rate: <span x-text="edge.red_zone_td_rate ? (edge.red_zone_td_rate * 100).toFixed(1) + '%' : 'N/A'"></span>
+                                        </p>
+                                    </div>
+                                </template>
                             </div>
 
                             <!-- Reasoning -->

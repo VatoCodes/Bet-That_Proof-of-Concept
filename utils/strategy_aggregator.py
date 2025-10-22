@@ -178,7 +178,7 @@ class StrategyAggregator:
         season: int,
         min_edge: float
     ) -> List[Dict[str, Any]]:
-        """Get edges from QB TD v1 Simple calculator."""
+        """Get edges from QB TD v1 Simple calculator with v2 metrics for comparison."""
         try:
             # Use the base EdgeCalculator directly with v1 model
             from utils.edge_calculator import EdgeCalculator
@@ -207,15 +207,36 @@ class StrategyAggregator:
                         f"Edge: {edge.get('edge_percentage', 0.0):.1f}%"
                     )
 
+                v1_edge_pct = edge.get('edge_percentage', 0.0)
+
+                # Calculate v2 metrics for comparison
+                v2_edge_pct = None
+                red_zone_td_rate = None
+                try:
+                    red_zone_td_rate = self.qb_td_calc_v2._calculate_red_zone_td_rate(qb_name, season)
+                    opp_defense_quality = self.qb_td_calc_v2._get_opponent_defense_quality(opponent, season)
+                    v2_edge_pct = self.qb_td_calc_v2._adjust_edge_with_v2_metrics(
+                        base_edge_pct=v1_edge_pct,
+                        qb_stats={},  # Not used in adjustment
+                        red_zone_td_rate=red_zone_td_rate,
+                        opp_defense_quality=opp_defense_quality
+                    )
+                except Exception as e:
+                    logger.debug(f"Could not calculate v2 metrics for {qb_name}: {e}")
+
                 std_edge = {
                     "matchup": matchup,
                     "strategy": "QB TD 0.5+ (Simple v1)",
                     "line": edge.get('line', 0.5),
                     "recommendation": f"OVER {edge.get('line', 0.5)} TD",
-                    "edge_pct": edge.get('edge_percentage', 0.0),
+                    "edge_pct": v1_edge_pct,
                     "confidence": edge.get('confidence', 'MEDIUM').upper(),
                     "reasoning": reasoning,
-                    "opponent": opponent
+                    "opponent": opponent,
+
+                    # v2 comparison fields
+                    "v2_edge_pct": v2_edge_pct,
+                    "red_zone_td_rate": red_zone_td_rate
                 }
 
                 # Only include if meets minimum edge
