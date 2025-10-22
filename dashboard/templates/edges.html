@@ -131,10 +131,9 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Week</label>
                     <select x-model="filters.week" @change="loadEdges()" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                        <option value="7">Week 7</option>
-                        <option value="8">Week 8</option>
-                        <option value="9">Week 9</option>
-                        <option value="10">Week 10</option>
+                        <template x-for="week in availableWeeks" :key="week">
+                            <option :value="week" x-text="'Week ' + week"></option>
+                        </template>
                     </select>
                 </div>
                 <div>
@@ -194,6 +193,8 @@
                                 <th class="text-left py-2">QB</th>
                                 <th class="text-left py-2">Team</th>
                                 <th class="text-left py-2">Opponent</th>
+                                <th class="text-left py-2">Week</th>
+                                <th class="text-left py-2">Game Date</th>
                                 <th class="text-left py-2">Sportsbook</th>
                                 <th class="text-left py-2">True Prob</th>
                                 <th class="text-left py-2">Implied</th>
@@ -214,17 +215,22 @@
                         </thead>
                         <tbody>
                             <template x-for="(edge, index) in edges" :key="index">
-                                <tr class="border-b hover:bg-gray-50">
+                                <tr class="border-b hover:bg-gray-50" :class="getWeekWarningClass(edge)">
                                     <td class="py-3 font-medium" x-text="edge.qb_name"></td>
                                     <td class="py-3" x-text="edge.qb_team || 'N/A'"></td>
                                     <td class="py-3" x-text="edge.opponent"></td>
+                                    <td class="py-3">
+                                        <span x-text="'Week ' + edge.week"></span>
+                                        <span x-show="isWeekMismatch(edge)" class="ml-1" title="Week may not match game date">⚠️</span>
+                                    </td>
+                                    <td class="py-3 text-sm" x-text="formatGameDate(edge.game_date)"></td>
                                     <td class="py-3" x-text="edge.sportsbook || 'N/A'"></td>
                                     <td class="py-3" x-text="(edge.true_probability * 100).toFixed(1) + '%'"></td>
                                     <td class="py-3" x-text="(edge.implied_probability * 100).toFixed(1) + '%'"></td>
                                     <td class="py-3">
-                                        <span class="font-bold" 
-                                              :class="edge.edge_percentage > 15 ? 'text-green-600' : 
-                                                      edge.edge_percentage > 10 ? 'text-yellow-600' : 
+                                        <span class="font-bold"
+                                              :class="edge.edge_percentage > 15 ? 'text-green-600' :
+                                                      edge.edge_percentage > 10 ? 'text-yellow-600' :
                                                       'text-blue-600'"
                                               x-text="'+' + edge.edge_percentage.toFixed(1) + '%'"></span>
                                     </td>
@@ -270,14 +276,30 @@ function edgesData() {
         edges: [],
         loading: false,
         showEdgeModal: false,
+        availableWeeks: [],
+        currentWeek: {{ current_week }},
         filters: {
             week: {{ current_week }},
             model: 'v1',
             min_edge: 5
         },
-        
+
         async init() {
+            await this.loadWeekRange();
             await this.loadEdges();
+        },
+
+        async loadWeekRange() {
+            try {
+                const response = await fetch('/api/week-range');
+                const data = await response.json();
+                this.availableWeeks = data.available_weeks;
+                this.currentWeek = data.current_week;
+            } catch (error) {
+                console.error('Error loading week range:', error);
+                // Fallback to current week only
+                this.availableWeeks = [this.currentWeek];
+            }
         },
         
         async loadEdges() {
@@ -316,11 +338,13 @@ function edgesData() {
         },
         
         generateCSV() {
-            const headers = ['QB', 'Team', 'Opponent', 'Sportsbook', 'True Prob (%)', 'Implied Prob (%)', 'Edge (%)', 'Tier', 'Bet Size ($)', 'Kelly (%)'];
+            const headers = ['QB', 'Team', 'Opponent', 'Week', 'Game Date', 'Sportsbook', 'True Prob (%)', 'Implied Prob (%)', 'Edge (%)', 'Tier', 'Bet Size ($)', 'Kelly (%)'];
             const rows = this.edges.map(edge => [
                 edge.qb_name,
                 edge.qb_team || 'N/A',
                 edge.opponent,
+                edge.week || 'N/A',
+                this.formatGameDate(edge.game_date),
                 edge.sportsbook || 'N/A',
                 (edge.true_probability * 100).toFixed(1),
                 (edge.implied_probability * 100).toFixed(1),
@@ -331,6 +355,40 @@ function edgesData() {
             ]);
 
             return [headers, ...rows].map(row => row.join(',')).join('\n');
+        },
+
+        formatGameDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            try {
+                const date = new Date(dateStr);
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            } catch {
+                return dateStr;
+            }
+        },
+
+        isWeekMismatch(edge) {
+            if (!edge.game_date || !edge.week) return false;
+
+            try {
+                // Parse game date
+                const gameDate = new Date(edge.game_date);
+
+                // Calculate expected week from game date (season starts Sept 5, 2025)
+                const seasonStart = new Date('2025-09-05');
+                const daysSinceStart = Math.floor((gameDate - seasonStart) / (1000 * 60 * 60 * 24));
+                const calculatedWeek = Math.floor(daysSinceStart / 7) + 1;
+
+                // Flag if week doesn't match calculated week (allow +/- 1 week tolerance for edge cases)
+                return Math.abs(edge.week - calculatedWeek) > 1;
+            } catch {
+                return false;
+            }
+        },
+
+        getWeekWarningClass(edge) {
+            return this.isWeekMismatch(edge) ? 'bg-yellow-50' : '';
         },
         
         get avgEdge() {
