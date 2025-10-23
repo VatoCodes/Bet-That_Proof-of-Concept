@@ -175,40 +175,77 @@ class QBTDCalculatorV2:
             logger.warning(f"Error getting enhanced stats for {qb_name}: {e}")
             return None
 
-    def _calculate_red_zone_td_rate(self, qb_name: str, season: int) -> float:
+    def _calculate_red_zone_td_rate(self, qb_name: str, season: int, weeks_back: int = 4) -> float:
         """
-        Calculate QB's red zone TD conversion rate from play-by-play
+        Calculate QB's red zone TD conversion rate from game log data
+
+        NEW: Uses player_game_log instead of play_by_play (which has is_touchdown=0)
+
+        Formula: SUM(passing_touchdowns) / SUM(red_zone_passes)
+        Lookback: Last N weeks (configurable, default: 4)
 
         Args:
             qb_name: QB name
             season: NFL season year
+            weeks_back: Number of weeks to look back (default: 4)
 
         Returns:
-            Red zone TD rate (0.0-1.0)
+            Red zone TD rate (0.0-1.0), or 0.0 if insufficient data
         """
         conn = self.db_manager._get_connection()
 
+        # Get current week to determine lookback window
+        current_week_query = "SELECT MAX(week) as current_week FROM player_game_log WHERE season = ?"
+        current_week_result = pd.read_sql_query(current_week_query, conn, params=(season,))
+
+        if current_week_result.empty or current_week_result.iloc[0]['current_week'] is None:
+            logger.debug(f"No game log data found for {season} season")
+            return 0.0
+
+        current_week = int(current_week_result.iloc[0]['current_week'])
+        lookback_week = max(1, current_week - weeks_back + 1)
+
         query = """
             SELECT
-                COUNT(CASE WHEN rushing_or_passing_touchdown = 1 THEN 1 END) as rz_tds,
-                COUNT(*) as rz_attempts
-            FROM play_by_play
-            WHERE qb = ? AND season = ? AND red_zone_play = 1
-                  AND (play_type = 'pass' OR play_type = 'run')
+                SUM(passing_touchdowns) as total_tds,
+                SUM(red_zone_passes) as total_rz_attempts,
+                COUNT(DISTINCT week) as weeks_with_data,
+                COUNT(*) as games
+            FROM player_game_log
+            WHERE player_name = ?
+              AND season = ?
+              AND week >= ?
+              AND week <= ?
         """
 
         try:
-            result = pd.read_sql_query(query, conn, params=(qb_name, season))
+            result = pd.read_sql_query(query, conn, params=(qb_name, season, lookback_week, current_week))
 
-            if result.empty or result.iloc[0]['rz_attempts'] == 0:
-                logger.debug(f"No red zone plays found for {qb_name}")
+            if result.empty:
+                logger.debug(f"No game log data found for {qb_name}")
                 return 0.0
 
-            rz_tds = result.iloc[0]['rz_tds']
-            rz_attempts = result.iloc[0]['rz_attempts']
+            total_tds = result.iloc[0]['total_tds'] or 0
+            total_rz_attempts = result.iloc[0]['total_rz_attempts'] or 0
+            weeks_with_data = result.iloc[0]['weeks_with_data'] or 0
+            games = result.iloc[0]['games'] or 0
 
-            rate = rz_tds / rz_attempts if rz_attempts > 0 else 0.0
-            logger.debug(f"{qb_name} red zone TD rate: {rate:.3f} ({rz_tds}/{rz_attempts})")
+            # Data quality checks
+            if weeks_with_data < 2:
+                logger.debug(f"{qb_name}: Insufficient weeks of data ({weeks_with_data} < 2)")
+                return 0.0
+
+            if total_rz_attempts < 5:
+                logger.debug(f"{qb_name}: Insufficient red zone attempts ({total_rz_attempts} < 5)")
+                return 0.0
+
+            # Calculate rate
+            rate = total_tds / total_rz_attempts if total_rz_attempts > 0 else 0.0
+
+            logger.debug(
+                f"{qb_name} red zone TD rate: {rate:.3f} "
+                f"({total_tds}/{total_rz_attempts} over {weeks_with_data} weeks, {games} games)"
+            )
 
             return rate
 

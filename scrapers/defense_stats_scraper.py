@@ -25,6 +25,8 @@ from config import (
 )
 
 logger = logging.getLogger(__name__)
+
+class DefenseStatsScraper:
     """Scrapes NFL defense stats from Pro Football Reference"""
 
     def __init__(self, year: int = CURRENT_YEAR):

@@ -1,0 +1,34 @@
+{
+  "metadata": {
+    "week": 8,
+    "season": 2025,
+    "total_matchups": 0,
+    "timestamp": "2025-10-22 21:43:14",
+    "min_edge_threshold": 5.0
+  },
+  "test_scripts": {
+    "test_red_zone_calculation": {
+      "status": "PASS",
+      "notes": "Validated in separate test run"
+    },
+    "test_v2_game_log_integration": {
+      "status": "PASS",
+      "notes": "Validated in separate test run"
+    }
+  },
+  "comparison": {
+    "status": "NO_DATA",
+    "message": "No edges found for comparison",
+    "agreement_rate": null,
+    "target_range": "60-85%"
+  },
+  "go_no_go": {
+    "decision": "DEFER",
+    "rationale": "Cannot validate without edges. Need to add QB props data or use different week.",
+    "recommendations": [
+      "Add QB props odds data for Week 7",
+      "Try Week 8 or another week with complete data",
+      "Validate v2 calculator logic is working (tests passed)"
+    ]
+  }
+}

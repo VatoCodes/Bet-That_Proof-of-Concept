@@ -1,0 +1,18 @@
+Priority,Agent,Current Status,Action Required,Effort (hrs),Week,Owner,Breaking Changes,Notes
+HIGH,game_log_importer.py,Complete,None,0,N/A,Complete,None,New agent - 868 QB-weeks imported
+HIGH,playerprofile_importer.py,Updated,None,0,N/A,Complete,None,Added Step 4 for game_log import
+HIGH,qb_td_calculator_v2.py,Updated,None,0,N/A,Complete,None,Uses game_log for red zone TD rates (20-67%)
+N/A,play_by_play_importer.py,Compatible,None,0,N/A,N/A,None,No changes needed - provides context data
+N/A,roster_importer.py,Compatible,None,0,N/A,N/A,None,No changes needed - name resolution
+N/A,edge_calculator.py,Compatible,None,0,N/A,N/A,None,No changes needed - abstracted from data layer
+N/A,strategy_aggregator.py,Compatible,None,0,N/A,N/A,None,No changes needed - already uses v2 calculator
+MEDIUM,data_quality_validator.py,Needs Update,Add game_log completeness checks,2-3,Week 1,Dev,None,Add validate_game_log_completeness() method
+MEDIUM,data_quality_validator.py,Needs Update,Add dual-source consistency checks,1,Week 1,Dev,None,Add validate_dual_source_consistency() method
+MEDIUM,scheduled_validator.py,Needs Update,Add game_log health monitoring,1-2,Week 1,Dev,None,Add validate_game_log_health() function
+LOW,data_validator.py,Test Needed,Verify game_log table compatibility,1,Week 1,QA,None expected,Run validation to confirm schema compatibility
+LOW,custom_reports_importer.py,Review Needed,Evaluate QB stats overlap with game_log,1,Week 2,Analysis,Minor (if QB import removed),Consider deprecating QB portion (keep kickers)
+LOW,first_half_total_calculator.py,Evaluation Needed,Assess dual-source compatibility,1-2,Week 2,Dev,None expected,Not blocking QB TD v2 deployment
+LOW,probability_models.py,Deferred,Evaluate game_log integration,2-3,Backlog,Research,None,Could enhance v2 with better probabilities
+LOW,Unified Data Access Layer,Future,Design abstraction layer for data sources,4-6,Backlog,Architecture,None,Simplify future calculator development
+LOW,Historical Backfill,Future,Import 2020-2023 game log data,2,Backlog,Data,None,More data for trend analysis
+LOW,nflfastR Migration,Strategic,Evaluate migration to industry standard,8-12,Backlog,Strategic,Potentially major,Comprehensive data source - long-term consideration

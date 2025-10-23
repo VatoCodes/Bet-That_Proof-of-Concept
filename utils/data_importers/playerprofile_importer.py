@@ -18,6 +18,7 @@ from utils.data_importers.play_by_play_importer import PlayByPlayImporter
 from utils.data_importers.custom_reports_importer import CustomReportsImporter
 from utils.data_importers.roster_importer import RosterImporter
 from utils.data_importers.team_metrics_calculator import TeamMetricsCalculator
+from utils.data_importers.game_log_importer import GameLogImporter
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -99,8 +100,16 @@ class PlayerProfilerImporter:
             summary['imports']['player_roster'] = roster_count
             logger.info(f"✅ Weekly roster: {roster_count} player-week entries imported\n")
 
-            # Step 4: Calculate team metrics (aggregate play-by-play)
-            logger.info("📊 Step 4: Calculating team metrics from play-by-play...")
+            # Step 4: Import game log (NEW - critical for v2 calculator)
+            logger.info("📊 Step 4: Importing game log data (QB stats by week)...")
+            game_log_path = self.imports_dir / 'PlayerProfiler' / 'Game Log' / f'{season}-Advanced-Gamelog.csv'
+            game_log_importer = GameLogImporter(self.db_manager)
+            game_log_count = game_log_importer.import_season(season, game_log_path)
+            summary['imports']['player_game_log'] = game_log_count
+            logger.info(f"✅ Game log: {game_log_count} QB game records imported\n")
+
+            # Step 5: Calculate team metrics (aggregate play-by-play)
+            logger.info("📊 Step 5: Calculating team metrics from play-by-play...")
             calculator = TeamMetricsCalculator(self.db_manager)
             metrics_count = calculator.calculate_all_weeks(season)
             summary['imports']['team_metrics'] = metrics_count
@@ -120,6 +129,7 @@ class PlayerProfilerImporter:
         logger.info(f"   Kicker stats: {summary['imports'].get('kicker_stats', 0):,} rows")
         logger.info(f"   QB enhanced:  {summary['imports'].get('qb_stats_enhanced', 0):,} rows")
         logger.info(f"   Roster:       {summary['imports'].get('player_roster', 0):,} rows")
+        logger.info(f"   Game log:     {summary['imports'].get('player_game_log', 0):,} rows (NEW)")
         logger.info(f"   Team metrics: {summary['imports'].get('team_metrics', 0):,} rows")
         logger.info(f"{'='*70}\n")
 

@@ -33,7 +33,47 @@ class DatabaseManager:
     
     def create_tables(self):
         """Create all database tables with proper schema"""
-        
+
+        # Player game log table (NEW - for v2 calculator)
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS player_game_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player_id TEXT NOT NULL,
+                player_name TEXT NOT NULL,
+                week INTEGER NOT NULL,
+                season INTEGER NOT NULL,
+                position TEXT,
+                team TEXT,
+                opponent TEXT,
+
+                -- Passing stats
+                passing_attempts INTEGER DEFAULT 0,
+                passing_completions INTEGER DEFAULT 0,
+                passing_yards INTEGER DEFAULT 0,
+                passing_touchdowns INTEGER DEFAULT 0,
+                interceptions INTEGER DEFAULT 0,
+
+                -- Red zone stats (critical for v2 calculator)
+                red_zone_passes INTEGER DEFAULT 0,
+                red_zone_completions INTEGER DEFAULT 0,
+
+                -- Advanced stats
+                deep_ball_attempts INTEGER DEFAULT 0,
+                pressured_attempts INTEGER DEFAULT 0,
+
+                -- Rushing stats
+                rushing_attempts INTEGER DEFAULT 0,
+                rushing_yards INTEGER DEFAULT 0,
+                rushing_touchdowns INTEGER DEFAULT 0,
+
+                -- Metadata
+                imported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                -- Unique constraint: one record per player per game
+                UNIQUE(player_id, season, week)
+            )
+        """)
+
         # Defense stats table
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS defense_stats (
@@ -141,6 +181,12 @@ class DatabaseManager:
         
         # Create indexes for performance
         indexes = [
+            # Player game log indexes (NEW - critical for v2 calculator performance)
+            "CREATE INDEX IF NOT EXISTS idx_game_log_player_name ON player_game_log(player_name)",
+            "CREATE INDEX IF NOT EXISTS idx_game_log_season_week ON player_game_log(season, week)",
+            "CREATE INDEX IF NOT EXISTS idx_game_log_player_season ON player_game_log(player_name, season)",
+
+            # Existing indexes
             "CREATE INDEX IF NOT EXISTS idx_defense_week ON defense_stats(week)",
             "CREATE INDEX IF NOT EXISTS idx_defense_team ON defense_stats(team_name)",
             "CREATE INDEX IF NOT EXISTS idx_qb_year ON qb_stats(year)",
@@ -572,6 +618,80 @@ class DatabaseManager:
         result = pd.read_sql_query(query, conn, params=(position, week, season))
 
         return result.to_dict('records')
+
+    def upsert_player_game_log(self, df):
+        """
+        Insert or update player game log data (upsert on player_id, season, week)
+
+        Args:
+            df: DataFrame with player game log data
+
+        Returns:
+            int: Number of rows inserted
+        """
+        conn = self._get_connection()
+
+        # Delete existing rows for (player_id, season, week) tuples
+        for _, row in df.iterrows():
+            conn.execute(
+                "DELETE FROM player_game_log WHERE player_id=? AND season=? AND week=?",
+                (row['player_id'], row['season'], row['week'])
+            )
+
+        # Insert new records
+        df.to_sql('player_game_log', conn, if_exists='append', index=False)
+        conn.commit()
+
+        logger.info(f"✅ Upserted {len(df)} game log entries into player_game_log")
+        return len(df)
+
+    def get_player_game_log(self, player_name, season, weeks_back=4):
+        """
+        Retrieve player game log data for last N weeks
+
+        Args:
+            player_name: Player name
+            season: Season year
+            weeks_back: Number of weeks to look back (default: 4)
+
+        Returns:
+            DataFrame with game log data or empty DataFrame if not found
+        """
+        query = """
+            SELECT *
+            FROM player_game_log
+            WHERE player_name = ? AND season = ?
+            ORDER BY week DESC
+            LIMIT ?
+        """
+        conn = self._get_connection()
+        result = pd.read_sql_query(query, conn, params=(player_name, season, weeks_back))
+
+        return result
+
+    def get_player_game_log_by_week_range(self, player_name, season, start_week, end_week):
+        """
+        Retrieve player game log data for specific week range
+
+        Args:
+            player_name: Player name
+            season: Season year
+            start_week: Start week (inclusive)
+            end_week: End week (inclusive)
+
+        Returns:
+            DataFrame with game log data or empty DataFrame if not found
+        """
+        query = """
+            SELECT *
+            FROM player_game_log
+            WHERE player_name = ? AND season = ? AND week BETWEEN ? AND ?
+            ORDER BY week ASC
+        """
+        conn = self._get_connection()
+        result = pd.read_sql_query(query, conn, params=(player_name, season, start_week, end_week))
+
+        return result
 
 
 def main():

@@ -29,6 +29,7 @@ class PlayByPlayImporter:
         'down': 'down',
         'distance': 'to_go',
         'yards_to_endzone': 'yards_to_endzone',
+        'qb_id': 'qb_id',  # PlayerProfiler QB identifier - enables roster lookup
         'shotgun': 'shotgun',
         'play_action': 'play_action',
         'redzone': 'red_zone_play',

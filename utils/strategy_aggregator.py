@@ -289,7 +289,7 @@ class StrategyAggregator:
 
                 std_edge = {
                     "matchup": matchup,
-                    "strategy": "QB TD 0.5+ (Enhanced v2)",
+                    "strategy": edge.get('strategy', 'QB TD 0.5+ (Enhanced v2)'),  # Use actual strategy from calculator
                     "line": edge.get('line', 0.5),
                     "recommendation": f"OVER {edge.get('line', 0.5)} TD",
                     "edge_pct": edge.get('edge_percentage', 0.0),

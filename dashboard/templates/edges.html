@@ -723,7 +723,8 @@
                                             </template>
 
                                             <!-- v2 Result Comparison (for v2 edges with v1 baseline) -->
-                                            <template x-if="edge.v1_edge_pct !== undefined && edge.v1_edge_pct !== null && edge.strategy.includes('v2')">
+                                            <!-- Hide if difference < 0.1% or if it's v2 with limited data -->
+                                            <template x-if="edge.v1_edge_pct !== undefined && edge.v1_edge_pct !== null && edge.strategy.includes('v2') && Math.abs(edge.edge_pct - edge.v1_edge_pct) >= 0.1 && !edge.strategy.includes('limited data')">
                                                 <div class="border-t border-gray-700 pt-2">
                                                     <p class="font-semibold text-green-300 mb-1">Result:</p>
                                                     <p class="ml-2 text-gray-300">
@@ -753,8 +754,9 @@
                             </div>
 
                             <!-- v1/v2 Comparison (v2 edges show v1 baseline, v1 edges show v2 projection) -->
+                            <!-- Hide if values are identical (difference < 0.1%) or if it's v2 with limited data -->
                             <div
-                                x-show="(edge.v1_edge_pct !== undefined && edge.v1_edge_pct !== null) || (edge.v2_edge_pct !== undefined && edge.v2_edge_pct !== null)"
+                                x-show="((edge.v1_edge_pct !== undefined && edge.v1_edge_pct !== null && Math.abs(edge.edge_pct - edge.v1_edge_pct) >= 0.1 && !edge.strategy.includes('limited data')) || (edge.v2_edge_pct !== undefined && edge.v2_edge_pct !== null && Math.abs(edge.v2_edge_pct - edge.edge_pct) >= 0.1 && (edge.v1_edge_pct === undefined || edge.v1_edge_pct === null)))"
                                 class="mb-2 p-3 bg-blue-50 rounded border border-blue-200"
                             >
                                 <!-- For v2 edges: Show v1 baseline -->

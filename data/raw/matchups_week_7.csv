@@ -1,2 +1,16 @@
-week,home_team,away_team,game_date
-7,Cincinnati,Pittsburgh,2025-10-21
+home_team,away_team,game_date,game_time,week
+Cincinnati Bengals,Pittsburgh Steelers,2025-10-17,00:15Z,7
+Jacksonville Jaguars,Los Angeles Rams,2025-10-19,13:30Z,7
+Chicago Bears,New Orleans Saints,2025-10-19,17:00Z,7
+Cleveland Browns,Miami Dolphins,2025-10-19,17:00Z,7
+Tennessee Titans,New England Patriots,2025-10-19,17:00Z,7
+Kansas City Chiefs,Las Vegas Raiders,2025-10-19,17:00Z,7
+Minnesota Vikings,Philadelphia Eagles,2025-10-19,17:00Z,7
+New York Jets,Carolina Panthers,2025-10-19,17:00Z,7
+Denver Broncos,New York Giants,2025-10-19,20:05Z,7
+Los Angeles Chargers,Indianapolis Colts,2025-10-19,20:05Z,7
+Dallas Cowboys,Washington Commanders,2025-10-19,20:25Z,7
+Arizona Cardinals,Green Bay Packers,2025-10-19,20:25Z,7
+San Francisco 49ers,Atlanta Falcons,2025-10-20,00:20Z,7
+Detroit Lions,Tampa Bay Buccaneers,2025-10-20,23:00Z,7
+Seattle Seahawks,Houston Texans,2025-10-21,02:00Z,7

@@ -157,9 +157,36 @@ class DataPipeline:
             logger.error(f"✗ Error in QB stats scraper: {e}")
             return False
 
+    def _matchups_already_exist(self, week: int) -> bool:
+        """
+        Check if matchups for a week already exist in database
+
+        Args:
+            week: Week number to check
+
+        Returns:
+            True if matchups exist (>= 12 games), False otherwise
+        """
+        if not self.db_manager:
+            return False
+
+        try:
+            import sqlite3
+            conn = sqlite3.connect(self.db_manager.db_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM matchups WHERE week = ?", (week,))
+            count = cursor.fetchone()[0]
+            conn.close()
+
+            return count >= 12  # NFL has 12-16 games per week
+        except Exception as e:
+            logger.warning(f"Could not check existing matchups: {e}")
+            return False
+
     def run_matchups(self) -> bool:
         """
         Run matchups scraper
+        Skip if matchups already exist (schedule is fixed, scrape once per week)
 
         Returns:
             True if successful, False otherwise
@@ -167,6 +194,13 @@ class DataPipeline:
         logger.info("=" * 60)
         logger.info("STEP 3: Scraping Matchups")
         logger.info("=" * 60)
+
+        # Optimization: Skip if matchups already exist
+        # NFL schedule is fixed - no need to re-scrape daily
+        if self._matchups_already_exist(self.week):
+            logger.info(f"✓ Week {self.week} matchups already exist in database, skipping scrape")
+            logger.info("  (Schedule is fixed - matchups scraped once per week)")
+            return True
 
         try:
             scraper = MatchupsScraper()

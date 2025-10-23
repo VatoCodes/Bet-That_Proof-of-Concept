@@ -13,6 +13,7 @@ from utils.query_tools import DatabaseQueryTools
 from utils.edge_calculator import EdgeCalculator
 from utils.week_manager import WeekManager
 from utils.data_validator import DataValidator
+from utils.data_quality_validator import DataQualityValidator
 from utils.strategy_aggregator import StrategyAggregator
 from config import get_current_week
 import importlib.util
@@ -228,6 +229,123 @@ def tracker_page():
     current_week = get_current_week()
     return render_template('tracker.html', current_week=current_week)
 
+@app.route('/data-quality')
+def data_quality_page():
+    """Data Quality Monitoring Dashboard"""
+    current_week = get_current_week()
+    return render_template('data_quality.html', current_week=current_week)
+
+@app.route('/api/data-quality')
+def api_data_quality():
+    """Get comprehensive data quality metrics for monitoring dashboard"""
+    try:
+        import sqlite3
+        from datetime import datetime
+
+        db.connect()
+        conn = sqlite3.connect(db.db_path)
+        cursor = conn.cursor()
+
+        # Query qb_stats_enhanced completeness
+        cursor.execute("SELECT COUNT(*) FROM qb_stats_enhanced")
+        total_qbs = cursor.fetchone()[0]
+
+        qb_stats_metrics = {}
+        if total_qbs > 0:
+            metrics = [
+                'passing_tds_per_game',
+                'deep_ball_completion_pct',
+                'pressured_completion_pct',
+                'clean_pocket_accuracy',
+                'red_zone_accuracy_rating'
+            ]
+
+            for metric in metrics:
+                cursor.execute(f"SELECT COUNT(*) FROM qb_stats_enhanced WHERE {metric} IS NOT NULL AND {metric} > 0")
+                count = cursor.fetchone()[0]
+                percentage = (count / total_qbs) * 100
+                qb_stats_metrics[metric] = {
+                    'count': count,
+                    'total': total_qbs,
+                    'percentage': round(percentage, 1)
+                }
+
+        # Query play_by_play qb_name population
+        cursor.execute("SELECT COUNT(*) FROM play_by_play")
+        total_plays = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM play_by_play WHERE qb_name IS NOT NULL AND qb_name != ''")
+        qb_name_populated = cursor.fetchone()[0]
+        qb_name_percentage = (qb_name_populated / total_plays * 100) if total_plays > 0 else 0
+
+        conn.close()
+        db.close()
+
+        # Calculate overall health score
+        completeness_scores = [m['percentage'] for m in qb_stats_metrics.values()]
+        completeness_scores.append(qb_name_percentage)
+        overall_health = sum(completeness_scores) / len(completeness_scores) if completeness_scores else 0
+
+        return jsonify({
+            'success': True,
+            'timestamp': datetime.now().isoformat(),
+            'overall_health_score': round(overall_health, 1),
+            'qb_stats_enhanced': {
+                'total_qbs': total_qbs,
+                'metrics': qb_stats_metrics
+            },
+            'play_by_play': {
+                'total_records': total_plays,
+                'qb_name_populated': qb_name_populated,
+                'qb_name_percentage': round(qb_name_percentage, 1)
+            },
+            'sql_errors': [
+                {
+                    'file': 'qb_td_calculator_v2.py',
+                    'line': 193,
+                    'incorrect': 'rushing_or_passing_touchdown',
+                    'correct': 'is_touchdown',
+                    'status': 'UNRESOLVED'
+                },
+                {
+                    'file': 'qb_td_calculator_v2.py',
+                    'line': 196,
+                    'incorrect': 'qb',
+                    'correct': 'qb_name',
+                    'status': 'UNRESOLVED'
+                }
+            ],
+            'defense_layers': {
+                'layer1_pre_deployment': {
+                    'status': 'NOT_IMPLEMENTED',
+                    'components': ['Calculator SQL Validator', 'Schema validation', 'Dry-run query tests']
+                },
+                'layer2_data_validator': {
+                    'status': 'PARTIAL',
+                    'components': ['Column completeness validation', 'Calculator dependency validation', 'Enhanced stats quality scoring', 'Cross-table consistency checks']
+                },
+                'layer3_integration_testing': {
+                    'status': 'MISSING',
+                    'components': ['v2 calculator tests', 'SQL query validation tests', 'Edge differentiation tests']
+                },
+                'layer4_continuous_monitoring': {
+                    'status': 'NOT_ACTIVE',
+                    'components': ['Daily data quality checks', 'Alert system', 'Quality score tracking']
+                },
+                'layer5_fallback_transparency': {
+                    'status': 'IMPLEMENTED',
+                    'components': ['v2 fallback to v1', 'Strategy label shows (limited data)', 'Frontend hides redundant comparisons']
+                }
+            }
+        })
+
+    except Exception as e:
+        logger.error(f"Error fetching data quality metrics: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/api/data-status')
 def api_data_status():
     """Get current data validation status"""
@@ -248,6 +366,39 @@ def api_data_status():
     }
 
     return jsonify(status)
+
+@app.route('/api/health')
+def api_health():
+    """
+    Health check endpoint for monitoring
+    Returns system health status
+    """
+    try:
+        quality_validator = DataQualityValidator()
+        current_week = get_current_week()
+
+        is_valid, issues = quality_validator.validate_week(current_week)
+
+        status_code = 200 if is_valid else 503
+
+        from datetime import datetime
+
+        response = {
+            'healthy': is_valid,
+            'current_week': current_week,
+            'issues': issues,
+            'timestamp': datetime.now().isoformat()
+        }
+
+        return jsonify(response), status_code
+
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return jsonify({
+            'healthy': False,
+            'error': str(e)
+        }), 503
+
 
 @app.route('/api/edge/explain/<edge_id>')
 async def api_explain_edge(edge_id):
